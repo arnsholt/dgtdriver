@@ -88,47 +88,62 @@ public class MoveParser {
          * position j, with white to play or black to play depending on the
          * array. whiteTrellis[0] is special-cased to also be 0.
          */
-        int[] whiteTrellis = new int[states.size()];
-        int[] blackTrellis = new int[states.size()];
-        Arrays.fill(whiteTrellis, -1);
-        Arrays.fill(blackTrellis, -1);
-        whiteTrellis[0] = 0;
-        MoveList legalMoves = new MoveList();
-        for(int i = 0; i < states.size(); i++) {
+        int stateCount = states.size();
+        Transition[][] whiteTrellis = new Transition[stateCount][];
+        Transition[][] blackTrellis = new Transition[stateCount][];
+        whiteTrellis[0] = new Transition[]{new Transition(0, null)};
+        for(int i = 0; i < stateCount; i++) {
             Board cur = states.get(i);
-            if(whiteTrellis[i] >= 0) {
+            if(whiteTrellis[i] != null) {
+                MoveList legalMoves = new MoveList();
                 cur.legalMoves(legalMoves, true);
                 for (Move m : legalMoves) {
                     Board newState = new Board(cur);
                     newState.play(m, true);
                     for(int j: boardToIndex.getOrDefault(newState, Collections.emptyList())) {
                         if(j < i) continue; // Ignore backwards possibilities.
-                        if(blackTrellis[j] >= 0)
-                            throw new RuntimeException(String.format("Position %d already reachable from %d", j , blackTrellis[j]));
-                        blackTrellis[j] = i;
+                        pushTransition(i, m, j, blackTrellis);
                     }
                 }
             }
 
-            if(blackTrellis[i] >= 0) {
+            if(blackTrellis[i] != null) {
+                MoveList legalMoves = new MoveList();
                 cur.legalMoves(legalMoves, false);
                 for (Move m : legalMoves) {
                     Board newState = new Board(cur);
                     newState.play(m, false);
                     for(int j: boardToIndex.getOrDefault(newState, Collections.emptyList())) {
                         if(j < i) continue; // Ignore backwards possibilities.
-                        if(whiteTrellis[j] >= 0)
-                            throw new RuntimeException(String.format("Position %d already reachable from %d", j , whiteTrellis[j]));
-                        whiteTrellis[j] = i;
+                        pushTransition(i, m, j, whiteTrellis);
                     }
                 }
             }
         }
 
-        if(whiteTrellis[whiteTrellis.length - 1] == -1 && blackTrellis[blackTrellis.length - 1] == -1) {
-            int whiteLast = lastNonNeg(whiteTrellis);
-            int blackLast = lastNonNeg(blackTrellis);
+        if(whiteTrellis[stateCount - 1] == null && blackTrellis[stateCount - 1] == null) {
+            int whiteLast = lastNonNull(whiteTrellis);
+            int blackLast = lastNonNull(blackTrellis);
             throw new RuntimeException(String.format("No path to end. Last white to move %d, black to move %d", whiteLast, blackLast));
+        }
+
+        if(whiteTrellis[stateCount - 1] != null && blackTrellis[stateCount - 1] != null) {
+            throw new RuntimeException("Final position reachable both with black and white to play");
+        }
+
+        Transition[] finalMoves;
+        boolean white;
+        if(whiteTrellis[stateCount - 1] != null) {
+            finalMoves = whiteTrellis[stateCount - 1];
+            white = true;
+        }
+        else {
+            finalMoves = blackTrellis[stateCount - 1];
+            white = false;
+        }
+
+        for(Transition t: finalMoves) {
+            List<Move> moves = decodeTransitions(t, white, whiteTrellis, blackTrellis);
         }
 
         ArrayList<Move> moves = new ArrayList<>();
@@ -143,11 +158,42 @@ public class MoveParser {
         return moves;
     }
 
-    private static int lastNonNeg(int[] a) {
+    private static List<Move> decodeTransitions(Transition t, boolean white, Transition[][] whiteTrellis, Transition[][] blackTrellis) {
+        LinkedList<Move> moves = new LinkedList<>();
+        while(t.source > 0) {
+            moves.add(0, t.move);
+            // TODO
+        }
+        return moves;
+    }
+
+    private static void pushTransition(int source, Move move, int target, Transition[][] trellis) {
+        Transition t = new Transition(source, move);
+        Transition[] targetArray = trellis[target];
+        if(targetArray == null) {
+            trellis[target] = new Transition[]{t};
+        }
+        else {
+            trellis[target] = Arrays.copyOf(targetArray, targetArray.length + 1);
+            trellis[target][targetArray.length] = t;
+        }
+    }
+
+    private static int lastNonNull(Transition[][] a) {
         for(int i = a.length - 1; i >= 0; i--) {
-            if(a[i] >= 0)
+            if(a[i] != null)
                 return i;
         }
         return -1;
+    }
+
+    private static class Transition {
+        int source;
+        Move move;
+
+        Transition(int s, Move m) {
+            source = s;
+            move = m;
+        }
     }
 }
