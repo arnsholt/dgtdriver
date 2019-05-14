@@ -42,13 +42,14 @@ class DgtDriverTest {
         StringBuilder builder = new StringBuilder();
         for(Move m: moves) {
             if(ply % 2 == 0) {
-                builder.append(String.format("%d. %s", ply/2, m.uci()));
+                builder.append(String.format("%d. %s", 1+ply/2, m.uci()));
             }
             else {
                 builder.append(String.format(" %s\n", m.uci()));
             }
             ply++;
         }
+        builder.append('\n');
         return builder.toString();
     }
 

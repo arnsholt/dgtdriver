@@ -24,7 +24,6 @@ public final class Move implements Comparable<Move> {
         this.capture = capture;
         this.to = to;
         this.promotion = promotion;
-        boolean turn = board.whiteAt(from);
 
         // Assign higher scores to moves that are more likely to be played.
         //
@@ -33,11 +32,11 @@ public final class Move implements Comparable<Move> {
         // generator.
 
         long defendingPawns =
-            Bitboard.pawnAttacks(turn, to) &
+            Bitboard.pawnAttacks(board.turn, to) &
             board.pawns &
-            board.them(turn);
+            board.them();
 
-        int moveValue = pieceValue(board, role, to, turn) - pieceValue(board, role, from, turn);
+        int moveValue = pieceValue(board, role, to) - pieceValue(board, role, from);
 
         this.score =
             (promotion == null ? 0 : promotion.index << 26) +
@@ -78,8 +77,8 @@ public final class Move implements Comparable<Move> {
     // Original table taken from:
     // https://github.com/flok99/feeks/blob/f02e4897555ac08497a5fea43f241bad30f2ecff/psq.py#L8-L67
 
-    private static int pieceValue(Board board, Role role, int square, boolean turn) {
-        return PSQT[role.index][turn ? Square.mirror(square) : square];
+    private static int pieceValue(Board board, Role role, int square) {
+        return PSQT[role.index][board.turn ? Square.mirror(square) : square];
     }
 
     private static final int PSQT[][] = {

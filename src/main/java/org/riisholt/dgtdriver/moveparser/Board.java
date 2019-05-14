@@ -15,9 +15,9 @@ public final class Board {
     long black;
     long occupied;
 
-    //boolean turn;
+    boolean turn;
     int epSquare;
-    //long castlingRights;
+    long castlingRights;
 
     int incrementalHash;
 
@@ -33,11 +33,11 @@ public final class Board {
         this.black = 0xffff000000000000L;
         this.occupied = 0xffff00000000ffffL;
 
-        //this.turn = true;
+        this.turn = true;
         this.epSquare = 0;
-        //this.castlingRights = this.rooks;
+        this.castlingRights = this.rooks;
 
-        this.incrementalHash = ZobristHash.hashPieces(this);// ^ ZobristHash.hashTurn(this);
+        this.incrementalHash = ZobristHash.hashPieces(this) ^ ZobristHash.hashTurn(this);
     }
 
     public Board(Board board) {
@@ -52,17 +52,16 @@ public final class Board {
         this.black = board.black;
         this.occupied = board.occupied;
 
-        //this.turn = board.turn;
+        this.turn = board.turn;
         this.epSquare = board.epSquare;
-        //this.castlingRights = board.castlingRights;
+        this.castlingRights = board.castlingRights;
 
-        this.incrementalHash = ZobristHash.hashPieces(this);// ^ ZobristHash.hashTurn(this);
+        this.incrementalHash = ZobristHash.hashPieces(this) ^ ZobristHash.hashTurn(this);
     }
 
     Board(long pawns, long knights, long bishops, long rooks, long queens, long kings,
           long white, long black,
-          int epSquare, long castlingRights) {
-          //boolean turn, int epSquare, long castlingRights) {
+          boolean turn, int epSquare, long castlingRights) {
 
         this.pawns = pawns;
         this.knights = knights;
@@ -75,41 +74,22 @@ public final class Board {
         this.black = black;
         this.occupied = white | black;
 
-        //this.turn = turn;
+        this.turn = turn;
         this.epSquare = epSquare;
-        //this.castlingRights = castlingRights;
+        this.castlingRights = castlingRights;
 
-        this.incrementalHash = ZobristHash.hashPieces(this);// ^ ZobristHash.hashTurn(this);
-    }
-
-    private long castlingRights() {
-        long blackInitialRooks = 0x8100000000000000L;
-        long whiteInitialRooks = 0x0000000000000081L;
-        long blackInitialKing = 0x1000000000000000L;
-        long whiteInitialKing = 0x0000000000000010L;
-
-        /* Castling rights for each side are the rooks on their initial
-         * squares, if the king is still on its initial square.
-         */
-        long blackCastle = (blackInitialKing & kings & black) != 0L?
-                blackInitialRooks & rooks & black:
-                0L;
-        long whiteCastle = (whiteInitialKing & kings & white) != 0L?
-                whiteInitialRooks & rooks & white:
-                0L;
-
-        return blackCastle | whiteCastle;
+        this.incrementalHash = ZobristHash.hashPieces(this) ^ ZobristHash.hashTurn(this);
     }
 
     public static Board emptyBoard() {
-        return new Board(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        return new Board(0, 0, 0, 0, 0, 0, 0, 0, true, 0, 0);
     }
 
     private boolean isOccupied(int square) {
         return Bitboard.contains(this.occupied, square);
     }
 
-    void discard(int square) {
+    public void discard(int square) {
         if (!isOccupied(square)) return;
         Role role = roleAt(square);
         long mask = 1L << square;
@@ -167,7 +147,7 @@ public final class Board {
     }
 
     public int zobristHash() {
-        return this.incrementalHash;// ^ ZobristHash.hashCastling(this) ^ ZobristHash.hashEnPassant(this);
+        return this.incrementalHash ^ ZobristHash.hashCastling(this) ^ ZobristHash.hashEnPassant(this);
     }
 
     public Map<Integer, Piece> pieceMap() {
@@ -181,24 +161,24 @@ public final class Board {
         return map;
     }
 
-    public void play(Move move, boolean turn) {
+    public void play(Move move) {
         this.epSquare = 0;
 
         switch (move.type) {
             case Move.NORMAL:
                 if (move.role == Role.PAWN && Math.abs(move.from - move.to) == 16) {
-                    long theirPawns = them(turn) & this.pawns;
+                    long theirPawns = them() & this.pawns;
                     if (theirPawns != 0) {
-                        int sq = move.from + (turn ? 8 : -8);
-                        if ((Bitboard.pawnAttacks(turn, sq) & theirPawns) != 0) {
+                        int sq = move.from + (this.turn ? 8 : -8);
+                        if ((Bitboard.pawnAttacks(this.turn, sq) & theirPawns) != 0) {
                             this.epSquare = sq;
                         }
                     }
                 }
 
-                /*if (this.castlingRights != 0) {
+                if (this.castlingRights != 0) {
                     if (move.role == Role.KING) {
-                        this.castlingRights &= Bitboard.RANKS[turn ? 7 : 0];
+                        this.castlingRights &= Bitboard.RANKS[this.turn ? 7 : 0];
                     } else if (move.role == Role.ROOK) {
                         this.castlingRights &= ~(1L << move.from);
                     }
@@ -206,38 +186,39 @@ public final class Board {
                     if (move.capture) {
                         this.castlingRights &= ~(1L << move.to);
                     }
-                }*/
+                }
 
                 discard(move.from);
-                put(move.to, turn, move.promotion != null ? move.promotion : move.role);
+                put(move.to, this.turn, move.promotion != null ? move.promotion : move.role);
                 break;
 
             case Move.CASTLING:
-                //this.castlingRights &= Bitboard.RANKS[turn ? 7 : 0];
+                this.castlingRights &= Bitboard.RANKS[this.turn ? 7 : 0];
                 int rookTo = Square.combine(move.to < move.from ? Square.D1 : Square.F1, move.to);
                 int kingTo = Square.combine(move.to < move.from ? Square.C1 : Square.G1, move.from);
                 discard(move.from);
                 discard(move.to);
-                put(rookTo, turn, Role.ROOK);
-                put(kingTo, turn, Role.KING);
+                put(rookTo, this.turn, Role.ROOK);
+                put(kingTo, this.turn, Role.KING);
                 break;
 
             case Move.EN_PASSANT:
                 discard(Square.combine(move.to, move.from));
                 discard(move.from);
-                put(move.to, turn, Role.PAWN);
+                put(move.to, this.turn, Role.PAWN);
                 break;
         }
 
+        this.turn = !this.turn;
         this.incrementalHash ^= ZobristHash.POLYGLOT[780];
     }
 
-    long us(boolean turn) {
-        return byColor(turn);
+    long us() {
+        return byColor(this.turn);
     }
 
-    long them(boolean turn) {
-        return byColor(!turn);
+    long them() {
+        return byColor(!this.turn);
     }
 
     long byColor(boolean white) {
@@ -248,8 +229,8 @@ public final class Board {
         return Bitboard.lsb(this.kings & byColor(white));
     }
 
-    private long sliderBlockers(int king, boolean turn) {
-        long snipers = them(turn) & (
+    private long sliderBlockers(int king) {
+        long snipers = them() & (
             Bitboard.rookAttacks(king, 0) & (this.rooks ^ this.queens) |
             Bitboard.bishopAttacks(king, 0) & (this.bishops ^ this.queens));
 
@@ -265,8 +246,8 @@ public final class Board {
         return blockers;
     }
 
-    public boolean isCheck(boolean turn) {
-        return attacksTo(king(turn), !turn) != 0;
+    public boolean isCheck() {
+        return attacksTo(king(this.turn), !this.turn) != 0;
     }
 
     private long attacksTo(int sq, boolean attacker) {
@@ -282,49 +263,49 @@ public final class Board {
             Bitboard.pawnAttacks(!attacker, sq) & this.pawns);
     }
 
-    public void legalMoves(MoveList moves, boolean turn) {
+    public void legalMoves(MoveList moves) {
         moves.clear();
 
         if (this.epSquare != 0) {
-            genEnPassant(turn, moves);
+            genEnPassant(moves);
         }
 
-        int king = king(turn);
-        long checkers = attacksTo(king, !turn);
+        int king = king(this.turn);
+        long checkers = attacksTo(king, !this.turn);
         if (checkers == 0) {
-            long target = ~us(turn);
-            genNonKing(target, turn, moves);
-            genSafeKing(king, target, turn, moves);
-            genCastling(king, turn, moves);
+            long target = ~us();
+            genNonKing(target, moves);
+            genSafeKing(king, target, moves);
+            genCastling(king, moves);
         } else {
-            genEvasions(king, checkers, turn, moves);
+            genEvasions(king, checkers, moves);
         }
 
-        long blockers = sliderBlockers(king, turn);
+        long blockers = sliderBlockers(king);
         if (blockers != 0 || this.epSquare != 0) {
-            moves.retain(m -> isSafe(king, m, blockers, turn));
+            moves.retain(m -> isSafe(king, m, blockers));
         }
     }
 
-    public boolean hasLegalEnPassant(boolean turn) {
+    public boolean hasLegalEnPassant() {
         // Like legalMoves(), but generate only en passant captures to see if
         // there are any legal en passant moves in the position.
 
         if (this.epSquare == 0) return false; // shortcut
 
         MoveList moves = new MoveList(2);
-        genEnPassant(turn, moves);
+        genEnPassant(moves);
 
-        int king = king(turn);
-        long blockers = sliderBlockers(king, turn);
-        return moves.anyMatch(m -> isSafe(king, m, blockers, turn));
+        int king = king(this.turn);
+        long blockers = sliderBlockers(king);
+        return moves.anyMatch(m -> isSafe(king, m, blockers));
     }
 
-    private void genNonKing(long mask, boolean turn, MoveList moves) {
-        genPawn(mask, turn, moves);
+    private void genNonKing(long mask, MoveList moves) {
+        genPawn(mask, moves);
 
         // Knights.
-        long knights = us(turn) & this.knights;
+        long knights = us() & this.knights;
         while (knights != 0) {
             int from = Bitboard.lsb(knights);
             long targets = Bitboard.KNIGHT_ATTACKS[from] & mask;
@@ -337,7 +318,7 @@ public final class Board {
         }
 
         // Bishops.
-        long bishops = us(turn) & this.bishops;
+        long bishops = us() & this.bishops;
         while (bishops != 0) {
             int from = Bitboard.lsb(bishops);
             long targets = Bitboard.bishopAttacks(from, this.occupied) & mask;
@@ -350,7 +331,7 @@ public final class Board {
         }
 
         // Rooks.
-        long rooks = us(turn) & this.rooks;
+        long rooks = us() & this.rooks;
         while (rooks != 0) {
             int from = Bitboard.lsb(rooks);
             long targets = Bitboard.rookAttacks(from, this.occupied) & mask;
@@ -363,7 +344,7 @@ public final class Board {
         }
 
         // Queens.
-        long queens = us(turn) & this.queens;
+        long queens = us() & this.queens;
         while (queens != 0) {
             int from = Bitboard.lsb(queens);
             long targets = Bitboard.queenAttacks(from, this.occupied) & mask;
@@ -376,18 +357,18 @@ public final class Board {
         }
     }
 
-    private void genSafeKing(int king, long mask, boolean turn, MoveList moves) {
+    private void genSafeKing(int king, long mask, MoveList moves) {
         long targets = Bitboard.KING_ATTACKS[king] & mask;
         while (targets != 0) {
             int to = Bitboard.lsb(targets);
-            if (attacksTo(to, !turn) == 0) {
+            if (attacksTo(to, !this.turn) == 0) {
                 moves.pushNormal(this, Role.KING, king, isOccupied(to), to);
             }
             targets &= targets - 1L;
         }
     }
 
-    private void genEvasions(int king, long checkers, boolean turn, MoveList moves) {
+    private void genEvasions(int king, long checkers, MoveList moves) {
         // Checks by these sliding pieces can maybe be blocked.
         long sliders = checkers & (this.bishops ^ this.rooks ^ this.queens);
 
@@ -399,24 +380,24 @@ public final class Board {
             sliders &= sliders - 1L;
         }
 
-        genSafeKing(king, ~us(turn) & ~attacked, turn, moves);
+        genSafeKing(king, ~us() & ~attacked, moves);
 
         if (checkers != 0 && !Bitboard.moreThanOne(checkers)) {
             int checker = Bitboard.lsb(checkers);
             long target = Bitboard.BETWEEN[king][checker] | checkers;
-            genNonKing(target, turn, moves);
+            genNonKing(target, moves);
         }
     }
 
-    private void genPawn(long mask, boolean turn, MoveList moves) {
+    private void genPawn(long mask, MoveList moves) {
         // Pawn captures (except en passant).
-        long capturers = us(turn) & this.pawns;
+        long capturers = us() & this.pawns;
         while (capturers != 0) {
             int from = Bitboard.lsb(capturers);
-            long targets = Bitboard.pawnAttacks(turn, from) & them(turn) & mask;
+            long targets = Bitboard.pawnAttacks(this.turn, from) & them() & mask;
             while (targets != 0) {
                 int to = Bitboard.lsb(targets);
-                addPawnMoves(from, true, to, turn, moves);
+                addPawnMoves(from, true, to, moves);
                 targets &= targets - 1L;
             }
             capturers &= capturers - 1L;
@@ -424,35 +405,35 @@ public final class Board {
 
         // Normal pawn moves.
         long singleMoves =
-            ~this.occupied & (turn ?
+            ~this.occupied & (this.turn ?
                 ((this.white & this.pawns) << 8) :
                 ((this.black & this.pawns) >>> 8));
 
         long doubleMoves =
             ~this.occupied &
-            (turn ? (singleMoves << 8) : (singleMoves >>> 8)) &
-            Bitboard.RANKS[turn ? 3 : 4];
+            (this.turn ? (singleMoves << 8) : (singleMoves >>> 8)) &
+            Bitboard.RANKS[this.turn ? 3 : 4];
 
         singleMoves &= mask;
         doubleMoves &= mask;
 
         while (singleMoves != 0) {
             int to = Bitboard.lsb(singleMoves);
-            int from = to + (turn ? -8 : 8);
-            addPawnMoves(from, false, to, turn, moves);
+            int from = to + (this.turn ? -8 : 8);
+            addPawnMoves(from, false, to, moves);
             singleMoves &= singleMoves - 1L;
         }
 
         while (doubleMoves != 0) {
             int to = Bitboard.lsb(doubleMoves);
-            int from = to + (turn ? -16: 16);
+            int from = to + (this.turn ? -16: 16);
             moves.pushNormal(this, Role.PAWN, from, false, to);
             doubleMoves &= doubleMoves - 1L;
         }
     }
 
-    private void addPawnMoves(int from, boolean capture, int to, boolean turn, MoveList moves) {
-        if (Square.rank(to) == (turn ? 7 : 0)) {
+    private void addPawnMoves(int from, boolean capture, int to, MoveList moves) {
+        if (Square.rank(to) == (this.turn ? 7 : 0)) {
             moves.pushPromotion(this, from, capture, to, Role.QUEEN);
             moves.pushPromotion(this, from, capture, to, Role.KNIGHT);
             moves.pushPromotion(this, from, capture, to, Role.ROOK);
@@ -462,8 +443,8 @@ public final class Board {
         }
     }
 
-    private void genEnPassant(boolean turn, MoveList moves) {
-        long pawns = us(turn) & this.pawns & Bitboard.pawnAttacks(!turn, this.epSquare);
+    private void genEnPassant(MoveList moves) {
+        long pawns = us() & this.pawns & Bitboard.pawnAttacks(!this.turn, this.epSquare);
         while (pawns != 0) {
             int pawn = Bitboard.lsb(pawns);
             moves.pushEnPassant(this, pawn, this.epSquare);
@@ -471,8 +452,8 @@ public final class Board {
         }
     }
 
-    private void genCastling(int king, boolean turn, MoveList moves) {
-        long rooks = this.castlingRights() & Bitboard.RANKS[turn ? 0 : 7];
+    private void genCastling(int king, MoveList moves) {
+        long rooks = this.castlingRights & Bitboard.RANKS[this.turn ? 0 : 7];
         while (rooks != 0) {
             int rook = Bitboard.lsb(rooks);
             long path = Bitboard.BETWEEN[king][rook];
@@ -481,7 +462,7 @@ public final class Board {
                 long kingPath = Bitboard.BETWEEN[king][kingTo] | (1L << kingTo) | (1L << king);
                 while (kingPath != 0) {
                     int sq = Bitboard.lsb(kingPath);
-                    if (attacksTo(sq, !turn, this.occupied ^ (1L << king)) != 0) {
+                    if (attacksTo(sq, !this.turn, this.occupied ^ (1L << king)) != 0) {
                         break;
                     }
                     kingPath &= kingPath - 1L;
@@ -494,11 +475,11 @@ public final class Board {
 
     // Used for filtering candidate moves that would leave/put the king
     // in check.
-    private boolean isSafe(int king, Move move, long blockers, boolean turn) {
+    private boolean isSafe(int king, Move move, long blockers) {
         switch (move.type) {
             case Move.NORMAL:
                 return
-                    !Bitboard.contains(us(turn) & blockers, move.from) ||
+                    !Bitboard.contains(us() & blockers, move.from) ||
                     Square.aligned(move.from, move.to, king);
 
             case Move.EN_PASSANT:
@@ -507,38 +488,33 @@ public final class Board {
                 occupied ^= (1L << Square.combine(move.to, move.from)); // captured pawn
                 occupied |= (1L << move.to);
                 return
-                    (Bitboard.rookAttacks(king, occupied) & them(turn) & (this.rooks ^ this.queens)) == 0 &&
-                    (Bitboard.bishopAttacks(king, occupied) & them(turn) & (this.bishops ^ this.queens)) == 0;
+                    (Bitboard.rookAttacks(king, occupied) & them() & (this.rooks ^ this.queens)) == 0 &&
+                    (Bitboard.bishopAttacks(king, occupied) & them() & (this.bishops ^ this.queens)) == 0;
 
             default:
                 return true;
         }
     }
 
-    public boolean equals(Object o) {
-        Board b = (Board) o;
-        return b.occupied == occupied
-                && b.queens == queens
-                && b.pawns == pawns
-                && b.rooks == rooks
-                && b.bishops == bishops
-                && b.kings == kings
-                && b.knights == knights
-                && b.white == white
-                && b.black == black
-                ;
+    public int hashCode() {
+        return zobristHash();
     }
 
-    public int hashCode() {
-        return Long.hashCode(occupied
-                ^ queens
-                ^ pawns
-                ^ rooks
-                ^ bishops
-                ^ kings
-                ^ knights
-                ^ white
-                ^ black);
+    public boolean equals(Object o) {
+        if(!(o instanceof Board)) return false;
+        Board other = (Board) o;
+        return pawns == other.pawns
+                && knights == other.knights
+                && bishops == other.bishops
+                && rooks == other.rooks
+                && queens == other.queens
+                && kings == other.kings
+                && white == other.white
+                && black == other.black
+                && occupied == other.occupied
+                && turn == other.turn
+                && epSquare == other.epSquare
+                && castlingRights == other.castlingRights;
     }
 
     public String debugBoard() {

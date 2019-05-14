@@ -2,7 +2,7 @@ package org.riisholt.dgtdriver.moveparser;
 
 class ZobristHash {
     public static int hashBoard(Board board) {
-        return hashPieces(board);//  ^ hashCastling(board)^ hashTurn(board) ^ hashEnPassant(board);
+        return hashPieces(board)  ^ hashCastling(board)^ hashTurn(board) ^ hashEnPassant(board);
     }
 
     public static int hashPieces(Board board) {
@@ -21,7 +21,7 @@ class ZobristHash {
         return POLYGLOT[64 * index + square];
     }
 
-    /*public static int hashCastling(Board board) {
+    public static int hashCastling(Board board) {
         int hash = 0;
         long cr = board.castlingRights;
         if (Bitboard.contains(cr, Square.H1)) hash ^= POLYGLOT[768];
@@ -29,15 +29,15 @@ class ZobristHash {
         if (Bitboard.contains(cr, Square.H8)) hash ^= POLYGLOT[768 + 2];
         if (Bitboard.contains(cr, Square.A8)) hash ^= POLYGLOT[768 + 3];
         return hash;
-    }*/
+    }
 
-    /*public static int hashTurn(Board board) {
+    public static int hashTurn(Board board) {
         return board.turn ? POLYGLOT[780] : 0;
-    }*/
+    }
 
-    /*public static int hashEnPassant(Board board) {
+    public static int hashEnPassant(Board board) {
         return board.hasLegalEnPassant() ? POLYGLOT[772 + Square.file(board.epSquare)] : 0;
-    }*/
+    }
 
     // The upper 24 bits of polyglot compatible pseudo random masks for
     // Zobrist hashing.
