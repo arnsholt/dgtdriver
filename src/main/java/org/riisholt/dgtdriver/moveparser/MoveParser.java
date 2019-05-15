@@ -17,12 +17,14 @@ public class MoveParser {
         ReachablePosition lastReachable = null;
 
         for(DgtMessage msg: msgs) {
-            Board newState = null;
+            Board newState;
             if(msg instanceof BoardDump) {
                 newState = ((BoardDump) msg).board();
             }
             else if(msg instanceof FieldUpdate) {
                 FieldUpdate update = (FieldUpdate) msg;
+                if(state == null)
+                    throw new IllegalArgumentException("Got FieldUpdate message before initial BoardDump.");
                 newState = new Board(state);
                 int square = rotate?
                         // Rotation trick from https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Rotationby180degrees
@@ -116,6 +118,7 @@ class ReachablePosition {
      * don't track turn in the board setup setup. */
     public int hashCode() { return ZobristHash.hashPieces(board); }
     public boolean equals(Object o) {
+        if(!(o instanceof ReachablePosition)) return false;
         return samePosition(board, ((ReachablePosition) o).board);
     }
 
