@@ -496,27 +496,6 @@ public final class Board {
         }
     }
 
-    public int hashCode() {
-        return zobristHash();
-    }
-
-    public boolean equals(Object o) {
-        if(!(o instanceof Board)) return false;
-        Board other = (Board) o;
-        return pawns == other.pawns
-                && knights == other.knights
-                && bishops == other.bishops
-                && rooks == other.rooks
-                && queens == other.queens
-                && kings == other.kings
-                && white == other.white
-                && black == other.black
-                && occupied == other.occupied
-                && turn == other.turn
-                && epSquare == other.epSquare
-                && castlingRights == other.castlingRights;
-    }
-
     public String debugBoard() {
         StringBuilder sb = new StringBuilder();
         for(int row = 7; row >=0; row--) {
