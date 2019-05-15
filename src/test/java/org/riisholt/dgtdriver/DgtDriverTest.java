@@ -30,9 +30,14 @@ class DgtDriverTest {
 
     @Test
     void testParsing() throws java.io.IOException {
-        List<byte[]> msgbytes = readBytes(getClass().getClassLoader().getResourceAsStream("1.pickle"));
+        testParsingForFile("1");
+        testParsingForFile("2");
+    }
+
+    void testParsingForFile(String prefix) throws java.io.IOException {
+        List<byte[]> msgbytes = readBytes(getClass().getClassLoader().getResourceAsStream(prefix + ".pickle"));
         List<DgtMessage> messages = processBytes(msgbytes);
-        String pgn = readResourceFile("1.pgn");
+        String pgn = readResourceFile(prefix + ".pgn");
         List<Move> moves = MoveParser.parseMoves(messages);
         assertEquals(pgn, asPgn(moves));
     }

@@ -496,6 +496,23 @@ public final class Board {
         }
     }
 
+    public void rotate180() {
+        pawns = Bitboard.rotate180(pawns);
+        knights = Bitboard.rotate180(knights);
+        bishops = Bitboard.rotate180(bishops);
+        rooks = Bitboard.rotate180(rooks);
+        queens = Bitboard.rotate180(queens);
+        kings = Bitboard.rotate180(kings);
+
+        white = Bitboard.rotate180(white);
+        black = Bitboard.rotate180(black);
+        occupied = Bitboard.rotate180(occupied);
+
+        castlingRights = Bitboard.rotate180(castlingRights);
+
+        incrementalHash = ZobristHash.hashPieces(this);
+    }
+
     public String debugBoard() {
         StringBuilder sb = new StringBuilder();
         for(int row = 7; row >=0; row--) {

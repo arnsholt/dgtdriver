@@ -6,11 +6,16 @@ import java.util.*;
 
 public class MoveParser {
     public static List<Move> parseMoves(List<DgtMessage> msgs) {
+        Board initialPosition = new Board();
+        Board rotatedInitialPosition = new Board(initialPosition);
+        rotatedInitialPosition.rotate180();
+
         Board state = null;
         HashMap<ReachablePosition, ReachablePosition> positions = new HashMap<>();
-        Board initialPosition = new Board();
         boolean seenInitialPosition = false;
+        boolean rotate = false;
         ReachablePosition lastReachable = null;
+
         for(DgtMessage msg: msgs) {
             Board newState = null;
             if(msg instanceof BoardDump) {
@@ -19,14 +24,18 @@ public class MoveParser {
             else if(msg instanceof FieldUpdate) {
                 FieldUpdate update = (FieldUpdate) msg;
                 newState = new Board(state);
+                int square = rotate?
+                        // Rotation trick from https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Rotationby180degrees
+                        update.square() ^ 63:
+                        update.square();
                 if(update.role() == null) {
-                    if(newState.roleAt(update.square()) == null) {
+                    if(newState.roleAt(square) == null) {
                         throw new RuntimeException("Piece removed from empty square.");
                     }
-                    newState.discard(update.square());
+                    newState.discard(square);
                 }
                 else {
-                    newState.put(update.square(), update.color(), update.role());
+                    newState.put(square, update.color(), update.role());
                 }
             }
             else if(msg instanceof  BWTime) {
@@ -47,6 +56,14 @@ public class MoveParser {
                     positions.put(lastReachable, lastReachable);
                     addReachablePositions(lastReachable, positions);
                 }
+                else if(ReachablePosition.samePosition(newState, rotatedInitialPosition)) {
+                    seenInitialPosition = true;
+                    lastReachable = new ReachablePosition(initialPosition, null, null);
+                    positions.put(lastReachable, lastReachable);
+                    addReachablePositions(lastReachable, positions);
+                    state.rotate180();
+                    rotate = true;
+                }
                 continue;
             }
 
@@ -57,7 +74,13 @@ public class MoveParser {
             lastReachable = reachable;
         }
 
+        /* XXX: Using an ArrayList here is probably not optimal. Depending on
+         * exactly how ArrayList works it can be kinda bad or not too bad, but
+         * either using building the ArrayList backwards and reversing it or
+         * just using a LinkedList is probably better. */
         List<Move> moves = new ArrayList<>();
+        if(lastReachable == null) return moves;
+
         for(ReachablePosition reachable = lastReachable; reachable.from != null; reachable = reachable.from) {
             moves.add(0, reachable.via);
         }

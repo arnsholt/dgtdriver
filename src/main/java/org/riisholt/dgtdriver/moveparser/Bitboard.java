@@ -138,4 +138,19 @@ class Bitboard {
         }
         return set;
     }
+
+    public static long rotate180(long x) {
+        long h1 = 0x5555555555555555L;
+        long h2 = 0x3333333333333333L;
+        long h4 = 0x0F0F0F0F0F0F0F0FL;
+        long v1 = 0x00FF00FF00FF00FFL;
+        long v2 = 0x0000FFFF0000FFFFL;
+        x = ((x >>  1) & h1) | ((x & h1) <<  1);
+        x = ((x >>  2) & h2) | ((x & h2) <<  2);
+        x = ((x >>  4) & h4) | ((x & h4) <<  4);
+        x = ((x >>  8) & v1) | ((x & v1) <<  8);
+        x = ((x >> 16) & v2) | ((x & v2) << 16);
+        x = ( x >> 32)       | ( x       << 32);
+        return x;
+    }
 }
