@@ -7,7 +7,7 @@ import java.util.*;
 public class MoveParser {
     public static List<Move> parseMoves(List<DgtMessage> msgs) {
         Board state = null;
-        OrderedPositionSet positions = new OrderedPositionSet();
+        HashMap<ReachablePosition, ReachablePosition> positions = new HashMap<>();
         Board initialPosition = new Board();
         boolean seenInitialPosition = false;
         ReachablePosition lastReachable = null;
@@ -41,16 +41,17 @@ public class MoveParser {
             if(state == null) continue;
 
             if(!seenInitialPosition) {
-                if(BoardSetupComparator.cmp.compare(newState, initialPosition) == 0) {
+                if(ReachablePosition.samePosition(newState, initialPosition)) {
                     seenInitialPosition = true;
                     lastReachable = new ReachablePosition(initialPosition, null, null);
-                    positions.add(lastReachable);
+                    positions.put(lastReachable, lastReachable);
                     addReachablePositions(lastReachable, positions);
                 }
                 continue;
             }
 
-            ReachablePosition reachable = positions.get(state);
+            ReachablePosition p = new ReachablePosition(state, null, null);
+            ReachablePosition reachable = positions.get(p);
             if(reachable == null) continue;
             addReachablePositions(reachable, positions);
             lastReachable = reachable;
@@ -65,13 +66,14 @@ public class MoveParser {
         return moves;
     }
 
-    private static void addReachablePositions(ReachablePosition from, OrderedPositionSet positions) {
+    private static void addReachablePositions(ReachablePosition from, Map<ReachablePosition, ReachablePosition> positions) {
         MoveList moves = new MoveList();
         from.board.legalMoves(moves);
         for(Move m: moves) {
             Board newBoard = new Board(from.board);
             newBoard.play(m);
-            positions.add(new ReachablePosition(newBoard, from, m));
+            ReachablePosition reachable = new ReachablePosition(newBoard, from, m);
+            positions.put(reachable, reachable);
         }
     }
 }
@@ -86,88 +88,22 @@ class ReachablePosition {
         from = f;
         via = v;
     }
-}
 
-class OrderedPositionSet {
-    static class Node {
-        ReachablePosition position;
-        Node left, right;
-
-        Node(ReachablePosition b) {
-            position = b;
-        }
-
-        void add(ReachablePosition brd) {
-            int c = BoardSetupComparator.cmp.compare(brd.board, position.board);
-            if(c == 0) {
-                position = brd;
-            }
-            else if(c < 0) {
-                if(left == null) {
-                    left = new Node(brd);
-                }
-                else {
-                    left.add(brd);
-                }
-            }
-            else {
-                if(right == null) {
-                    right = new Node(brd);
-                }
-                else {
-                    right.add(brd);
-                }
-            }
-        }
-
-        ReachablePosition get(Board b) {
-            int c = BoardSetupComparator.cmp.compare(b, position.board);
-            if(c == 0) {
-                return position;
-            }
-            else if(c < 0) {
-                return left == null?
-                        null:
-                        left.get(b);
-            }
-            else {
-                return right == null?
-                        null:
-                        right.get(b);
-            }
-        }
+    public int hashCode() { return ZobristHash.hashPieces(board); }
+    public boolean equals(Object o) {
+        return samePosition(board, ((ReachablePosition) o).board);
     }
 
-    Node root;
 
-    void add(ReachablePosition b) {
-        if(root == null) {
-            root = new Node(b);
-        }
-        else {
-            root.add(b);
-        }
-    }
-
-    ReachablePosition get(Board b) {
-        return root == null?
-                null:
-                root.get(b);
-    }
-}
-
-class BoardSetupComparator implements Comparator<Board> {
-    static BoardSetupComparator cmp = new BoardSetupComparator();
-    public int compare(Board a, Board b) {
-        return Comparator.comparingLong((Board pos) -> pos.pawns)
-                .thenComparingLong((Board pos) -> pos.knights)
-                .thenComparingLong((Board pos) -> pos.bishops)
-                .thenComparingLong((Board pos) -> pos.rooks)
-                .thenComparingLong((Board pos) -> pos.queens)
-                .thenComparingLong((Board pos) -> pos.kings)
-                .thenComparingLong((Board pos) -> pos.white)
-                .thenComparingLong((Board pos) -> pos.black)
-                .thenComparingLong((Board pos) -> pos.occupied)
-                .compare(a, b);
+    static boolean samePosition(Board a, Board b) {
+        return a.pawns == b.pawns
+            && a.knights == b.knights
+            && a.bishops == b.bishops
+            && a.rooks == b.rooks
+            && a.queens == b.queens
+            && a.kings == b.kings
+            && a.white == b.white
+            && a.black == b.black
+            && a.occupied == b.occupied;
     }
 }
