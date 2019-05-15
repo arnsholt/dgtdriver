@@ -111,6 +111,9 @@ class ReachablePosition {
         via = v;
     }
 
+    /* hashCode() can't use board.incrementalHash, since that includes a the
+     * turn member in the hash computation, which messes things up since we
+     * don't track turn in the board setup setup. */
     public int hashCode() { return ZobristHash.hashPieces(board); }
     public boolean equals(Object o) {
         return samePosition(board, ((ReachablePosition) o).board);
