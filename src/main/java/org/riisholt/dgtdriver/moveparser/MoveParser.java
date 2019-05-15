@@ -58,10 +58,9 @@ public class MoveParser {
         }
 
         List<Move> moves = new ArrayList<>();
-        for(ReachablePosition reachable = lastReachable; reachable != null; reachable = reachable.from) {
+        for(ReachablePosition reachable = lastReachable; reachable.from != null; reachable = reachable.from) {
             moves.add(0, reachable.via);
         }
-        moves.remove(0);
 
         return moves;
     }
