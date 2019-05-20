@@ -4,19 +4,18 @@ import java.time.Duration;
 
 public class BWTime implements DgtMessage {
     private Duration left, right;
-    private int leftFlags, rightFlags;
-    private byte clockStatusFlags;
+    private byte leftFlags, rightFlags, clockStatusFlags;
 
     public BWTime(byte[] data) throws DgtProtocolException {
         if(data.length != 7)
             throw new DgtProtocolException("BWTime expects exactly 7 bytes of data (got " + data.length + ")");
 
-        rightFlags = (data[0] & 0xf0) >> 4;
+        rightFlags = (byte) ((data[0] & 0xf0) >> 4);
         right = Duration.ZERO.plusHours(data[0] & 0x0f)
                             .plusMinutes(decodeBcd(data[1]))
                             .plusSeconds(decodeBcd(data[2]));
 
-        leftFlags = (data[3] & 0xf0) >> 4;
+        leftFlags = (byte) ((data[3] & 0xf0) >> 4);
         left = Duration.ZERO.plusHours(data[3] & 0x0f)
                              .plusMinutes(decodeBcd(data[4]))
                              .plusSeconds(decodeBcd(data[5]));
@@ -42,6 +41,24 @@ public class BWTime implements DgtMessage {
 
     public String leftTimeString() { return timeString(left); }
     public String rightTimeString() { return timeString(right); }
+
+    public Duration left() { return left; }
+    public Duration right() { return right; }
+
+    public void rotate() {
+        byte origLeft = leftFlags;
+        leftFlags = rightFlags;
+        rightFlags = origLeft;
+
+        /* The flags for left/right high, left to move, and right to move
+         * depend on the orientation of the board (assuming the clock is
+         * always on the same side of the board). We flip those bits by
+         * XOR-ing in a one in the appropriate position.
+         */
+        clockStatusFlags ^= 0x02;
+        clockStatusFlags ^= 0x08;
+        clockStatusFlags ^= 0x10;
+    }
 
     private static int decodeBcd(byte b){
         return ((b & 0xf0) >> 4)*10 + (b & 0x0f);

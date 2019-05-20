@@ -5,7 +5,7 @@ import org.riisholt.dgtdriver.*;
 import java.util.*;
 
 public class MoveParser {
-    public static List<Move> parseMoves(List<DgtMessage> msgs) {
+    public static List<PlayedMove> parseMoves(List<DgtMessage> msgs) {
         Board initialPosition = new Board();
         Board rotatedInitialPosition = new Board(initialPosition);
         rotatedInitialPosition.rotate180();
@@ -41,7 +41,11 @@ public class MoveParser {
                 }
             }
             else if(msg instanceof  BWTime) {
-                // TODO
+                if(lastReachable != null) {
+                    if(rotate)
+                        ((BWTime) msg).rotate();
+                    lastReachable.timeInfo = (BWTime) msg;
+                }
                 continue;
             }
             else {
@@ -80,14 +84,97 @@ public class MoveParser {
          * exactly how ArrayList works it can be kinda bad or not too bad, but
          * either using building the ArrayList backwards and reversing it or
          * just using a LinkedList is probably better. */
-        List<Move> moves = new ArrayList<>();
+        List<PlayedMove> moves = new ArrayList<>();
         if(lastReachable == null) return moves;
 
         for(ReachablePosition reachable = lastReachable; reachable.from != null; reachable = reachable.from) {
-            moves.add(0, reachable.via);
+            moves.add(0, new PlayedMove(reachable.via.uci(), moveToSan(reachable), reachable.timeInfo));
         }
 
         return moves;
+    }
+
+    private static String moveToSan(ReachablePosition r) {
+        StringBuilder sb = new StringBuilder();
+        if(r.via.type == Move.CASTLING) {
+            sb.append(
+                    Square.file(r.via.to) == 7?
+                        "O-O":
+                        "O-O-O");
+        }
+        else {
+            if (r.via.role == Role.PAWN) {
+                if (r.via.capture) {
+                    sb.append(files[Square.file(r.via.from)]);
+                }
+            }
+            else {
+                sb.append(r.via.role.symbol);
+
+                /* Disambiguate the origin square if necessary.
+                 *
+                 * The disambiguation code has been adapted wholesale from
+                 * shakmaty's San::disambiguate (https://github.com/niklasf/shakmaty/blob/master/src/san.rs).
+                 *
+                 * The relevant moves for disambiguation are the legal moves
+                 * from the previous position that move the same piece type to
+                 * the same square as the move played to reach the position.
+                 * Not sure if the check for promotion is strictly necessary
+                 * (since pawn moves are filtered out already), but shakmaty
+                 * has the check, so better safe than sorry.
+                 */
+                MoveList moves = new MoveList();
+                r.from.board.legalMoves(moves);
+                boolean rank = false;
+                boolean file = false;
+                for (Move m : moves) {
+                    /* We ignore moves that:
+                     * - Have a different destination
+                     * - Move a different piece
+                     * - Promote differently (XXX: should be extraneous?)
+                     */
+                    if (m.to != r.via.to || m.role != r.via.role || m.promotion != r.via.promotion)
+                        continue;
+                    // - Come from the same square (i.e. it's the *same* move as `r.via`).
+                    if (m.from == r.via.from)
+                        continue;
+
+                    if (Square.rank(m.from) == Square.rank(r.via.from) || Square.file(m.from) != Square.file(r.via.from)) {
+                        file = true;
+                    }
+                    else {
+                        rank = true;
+                    }
+                }
+                if(file)
+                    sb.append(files[Square.file(r.via.from)]);
+                if(rank)
+                    sb.append(ranks[Square.rank(r.via.from)]);
+            }
+
+            if (r.via.capture)
+                sb.append('x');
+
+            sb.append(squareString(r.via.to));
+        }
+
+        // Any move can be check or checkmate, so we add that last.
+        if(r.board.isCheck()) {
+            MoveList moves = new MoveList();
+            r.board.legalMoves(moves);
+            if(moves.size() > 0)
+                sb.append('+');
+            else
+                sb.append('#');
+        }
+
+        return sb.toString();
+    }
+
+    private static String[] ranks = {"1", "2", "3", "4", "5", "6", "7", "8"};
+    private static String[] files = {"a", "b", "c", "d", "e", "f", "g", "h"};
+    private static String squareString(int square){
+        return files[Square.file(square)] + ranks[Square.rank(square)];
     }
 
     private static void addReachablePositions(ReachablePosition from, Map<ReachablePosition, ReachablePosition> positions) {
@@ -106,6 +193,7 @@ class ReachablePosition {
     Board board;
     ReachablePosition from;
     Move via;
+    BWTime timeInfo;
 
     ReachablePosition(Board b, ReachablePosition f, Move v) {
         board = b;

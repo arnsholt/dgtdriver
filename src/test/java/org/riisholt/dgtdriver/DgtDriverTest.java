@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import net.razorvine.pickle.Unpickler;
 import org.riisholt.dgtdriver.moveparser.Move;
 import org.riisholt.dgtdriver.moveparser.MoveParser;
+import org.riisholt.dgtdriver.moveparser.PlayedMove;
 
 class DgtDriverTest {
     @Test
@@ -38,24 +39,52 @@ class DgtDriverTest {
         List<byte[]> msgbytes = readBytes(getClass().getClassLoader().getResourceAsStream(prefix + ".pickle"));
         List<DgtMessage> messages = processBytes(msgbytes);
         String pgn = readResourceFile(prefix + ".pgn");
-        List<Move> moves = MoveParser.parseMoves(messages);
-        assertEquals(pgn, asPgn(moves));
+        List<PlayedMove> moves = MoveParser.parseMoves(messages);
+        assertEquals(pgn, asUci(moves));
+        //assertEquals("", asPgn(moves));
     }
 
-    String asPgn(List<Move> moves) {
+    String asUci(List<PlayedMove> moves) {
         int ply = 0;
         StringBuilder builder = new StringBuilder();
-        for(Move m: moves) {
+        for(PlayedMove m: moves) {
             if(ply % 2 == 0) {
-                builder.append(String.format("%d. %s", 1+ply/2, m.uci()));
+                builder.append(1 + ply/2)
+                        .append(". ")
+                        .append(m.uci);
             }
             else {
-                builder.append(String.format(" %s\n", m.uci()));
+                builder.append(' ')
+                        .append(m.uci)
+                        .append('\n');
             }
             ply++;
         }
         builder.append('\n');
         return builder.toString();
+    }
+
+    String asPgn(List<PlayedMove> moves) {
+        int ply = 0;
+        StringBuilder sb = new StringBuilder();
+        for(PlayedMove m: moves) {
+            if(ply % 2 == 0) {
+                sb.append(1 + ply/2)
+                  .append(". ")
+                  .append(m.san)
+                  .append(' ')
+                  .append(String.format("{[clk %s]}", m.clockInfo.leftTimeString()));
+            }
+            else {
+                sb.append(' ')
+                   .append(m.san)
+                   .append(' ')
+                   .append(String.format("{[clk %s]}", m.clockInfo.rightTimeString()))
+                   .append('\n');
+            }
+            ply++;
+        }
+        return sb.toString();
     }
 
     String readResourceFile(String filename) throws java.io.IOException {
