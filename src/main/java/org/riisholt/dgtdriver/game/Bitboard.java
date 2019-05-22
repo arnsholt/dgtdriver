@@ -1,4 +1,4 @@
-package org.riisholt.dgtdriver.moveparser;
+package org.riisholt.dgtdriver.game;
 
 import java.util.Set;
 import java.util.HashSet;

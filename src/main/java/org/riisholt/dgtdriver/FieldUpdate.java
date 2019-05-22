@@ -1,6 +1,6 @@
 package org.riisholt.dgtdriver;
 
-import org.riisholt.dgtdriver.moveparser.Role;
+import org.riisholt.dgtdriver.game.Role;
 
 public class FieldUpdate implements DgtMessage {
     private int square;

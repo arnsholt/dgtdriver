@@ -1,6 +1,6 @@
 package org.riisholt.dgtdriver;
 
-import org.riisholt.dgtdriver.moveparser.Board;
+import org.riisholt.dgtdriver.game.Board;
 
 public class BoardDump implements DgtMessage {
     private Board board;

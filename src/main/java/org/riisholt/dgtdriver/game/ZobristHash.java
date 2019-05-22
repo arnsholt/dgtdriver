@@ -1,6 +1,6 @@
-package org.riisholt.dgtdriver.moveparser;
+package org.riisholt.dgtdriver.game;
 
-class ZobristHash {
+public class ZobristHash {
     public static int hashBoard(Board board) {
         return hashPieces(board) ^ hashCastling(board) ^ hashTurn(board) ^ hashEnPassant(board);
     }

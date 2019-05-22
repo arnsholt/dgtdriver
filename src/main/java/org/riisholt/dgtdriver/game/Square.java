@@ -1,4 +1,4 @@
-package org.riisholt.dgtdriver.moveparser;
+package org.riisholt.dgtdriver.game;
 
 public class Square {
     public static final int A1 = 0;

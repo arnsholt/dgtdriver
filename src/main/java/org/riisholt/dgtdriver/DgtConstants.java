@@ -1,7 +1,7 @@
 package org.riisholt.dgtdriver;
 
-import org.riisholt.dgtdriver.moveparser.Role;
-import static org.riisholt.dgtdriver.moveparser.Role.*;
+import org.riisholt.dgtdriver.game.Role;
+import static org.riisholt.dgtdriver.game.Role.*;
 
 public class DgtConstants {
     /* Messages to board that are not responded to. */
@@ -129,11 +129,7 @@ public class DgtConstants {
             case WKING:
             case BKING:
                 return KING;
-            case PIECE1:
-                return DRAW;
-            case PIECE2:
-            case PIECE3:
-                return WIN;
+            // TODO: Handle PIECE1-3 for win/draw signaling.
             default:
                 throw new DgtProtocolException(String.format("Invalid piece code %x", dgtCode));
         }

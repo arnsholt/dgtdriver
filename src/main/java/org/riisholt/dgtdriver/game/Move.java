@@ -1,4 +1,4 @@
-package org.riisholt.dgtdriver.moveparser;
+package org.riisholt.dgtdriver.game;
 
 public final class Move implements Comparable<Move> {
     public static final int NORMAL = 0;

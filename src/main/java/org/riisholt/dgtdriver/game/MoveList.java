@@ -1,9 +1,9 @@
-package org.riisholt.dgtdriver.moveparser;
+package org.riisholt.dgtdriver.game;
 
 import java.util.Arrays;
 import java.util.function.Predicate;
 
-final class MoveList implements Iterable<Move> {
+public final class MoveList implements Iterable<Move> {
     // A move list that reuses a pool of moves, never allocating new objects.
     // This is somewhat dangerous: Care must be taken that the list is not
     // modified while external code still holds references.

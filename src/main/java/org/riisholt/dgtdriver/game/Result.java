@@ -1,4 +1,4 @@
-package org.riisholt.dgtdriver.moveparser;
+package org.riisholt.dgtdriver.game;
 
 public enum Result {
     WHITE_WIN,

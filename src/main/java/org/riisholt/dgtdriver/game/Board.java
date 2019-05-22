@@ -1,4 +1,4 @@
-package org.riisholt.dgtdriver.moveparser;
+package org.riisholt.dgtdriver.game;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -532,6 +532,18 @@ public final class Board {
         // Otherwise: draw
         else
             return Result.DRAW;
+    }
+
+    public boolean equalSetup(Board b) {
+        return pawns == b.pawns
+                && knights == b.knights
+                && bishops == b.bishops
+                && rooks == b.rooks
+                && queens == b.queens
+                && kings == b.kings
+                && white == b.white
+                && black == b.black
+                && occupied == b.occupied;
     }
 
     public String debugBoard() {

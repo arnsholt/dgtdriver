@@ -11,9 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import net.razorvine.pickle.Unpickler;
-import org.riisholt.dgtdriver.moveparser.Move;
 import org.riisholt.dgtdriver.moveparser.MoveParser;
-import org.riisholt.dgtdriver.moveparser.PlayedMove;
+import org.riisholt.dgtdriver.game.PlayedMove;
 
 class DgtDriverTest {
     @Test

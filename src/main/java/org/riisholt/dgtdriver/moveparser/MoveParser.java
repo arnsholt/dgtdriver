@@ -1,6 +1,7 @@
 package org.riisholt.dgtdriver.moveparser;
 
 import org.riisholt.dgtdriver.*;
+import org.riisholt.dgtdriver.game.*;
 
 import java.util.*;
 
@@ -56,13 +57,13 @@ public class MoveParser {
             if(state == null) continue;
 
             if(!seenInitialPosition) {
-                if(ReachablePosition.samePosition(newState, initialPosition)) {
+                if(newState.equalSetup(initialPosition)) {
                     seenInitialPosition = true;
                     lastReachable = new ReachablePosition(initialPosition, null, null);
                     positions.put(lastReachable, lastReachable);
                     addReachablePositions(lastReachable, positions);
                 }
-                else if(ReachablePosition.samePosition(newState, rotatedInitialPosition)) {
+                else if(newState.equalSetup(rotatedInitialPosition)) {
                     seenInitialPosition = true;
                     lastReachable = new ReachablePosition(initialPosition, null, null);
                     positions.put(lastReachable, lastReachable);
@@ -214,19 +215,7 @@ class ReachablePosition {
     public int hashCode() { return ZobristHash.hashPieces(board); }
     public boolean equals(Object o) {
         if(!(o instanceof ReachablePosition)) return false;
-        return samePosition(board, ((ReachablePosition) o).board);
-    }
-
-
-    static boolean samePosition(Board a, Board b) {
-        return a.pawns == b.pawns
-            && a.knights == b.knights
-            && a.bishops == b.bishops
-            && a.rooks == b.rooks
-            && a.queens == b.queens
-            && a.kings == b.kings
-            && a.white == b.white
-            && a.black == b.black
-            && a.occupied == b.occupied;
+        //return samePosition(board, ((ReachablePosition) o).board);
+        return board.equalSetup(((ReachablePosition) o).board);
     }
 }
