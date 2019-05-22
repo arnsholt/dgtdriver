@@ -1,17 +1,14 @@
 /**
- * This package is a modified version of the move generation code from
- * <a href="https://github.com/lichess-org/compression">the lichess
- * compression code</a>. To suit our purposes, a number of changes have been
- * made to {@link org.riisholt.dgtdriver.moveparser.Board Board}:
+ * This package is a slightly modified version of the move generation code
+ * from <a href="https://github.com/lichess-org/compression">the lichess
+ * compression code</a>.
  *
  * <ul>
- *     <li>The side to move is no longer tracked. Instead, the move generation
- *     code takes the side to move as an argument.</li>
- *     <li>TODO: The en passant square is no longer tracked, instead ep
- *     captures are allowed whenever pawns are in the appropriate
- *     configuration.</li>
- *     <li>TODO: Castling is allowed whenever a rook and king are on their
- *     starting squares.</li>
+ *     <li>The classes Encoder, Huffman and PerftTest have been removed.</li>
+ *     <li>Bitboard.rotate180() and Board.rotate180 were added</li>
+ *     <li>Board.resultSignal() was added.</li>
+ *     <li>The Board class and some of its methods were made public.</li>
+ *     <li>MoveList was made to implement Iterable.</li>
  * </ul>
  */
 package org.riisholt.dgtdriver.moveparser;

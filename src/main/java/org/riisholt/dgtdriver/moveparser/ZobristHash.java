@@ -2,7 +2,7 @@ package org.riisholt.dgtdriver.moveparser;
 
 class ZobristHash {
     public static int hashBoard(Board board) {
-        return hashPieces(board)  ^ hashCastling(board)^ hashTurn(board) ^ hashEnPassant(board);
+        return hashPieces(board) ^ hashCastling(board) ^ hashTurn(board) ^ hashEnPassant(board);
     }
 
     public static int hashPieces(Board board) {

@@ -73,13 +73,13 @@ class DgtDriverTest {
                   .append(". ")
                   .append(m.san)
                   .append(' ')
-                  .append(String.format("{[clk %s]}", m.clockInfo.leftTimeString()));
+                  .append(String.format("{[%%clk %s]}", m.clockInfo.leftTimeString()));
             }
             else {
                 sb.append(' ')
                    .append(m.san)
                    .append(' ')
-                   .append(String.format("{[clk %s]}", m.clockInfo.rightTimeString()))
+                   .append(String.format("{[%%clk %s]}", m.clockInfo.rightTimeString()))
                    .append('\n');
             }
             ply++;

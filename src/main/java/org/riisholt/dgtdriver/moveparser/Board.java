@@ -513,6 +513,27 @@ public final class Board {
         incrementalHash = ZobristHash.hashPieces(this);
     }
 
+    static long D4 = Square.square(3,3);
+    static long D5 = Square.square(3,4);
+    static long E4 = Square.square(4,3);
+    static long E5 = Square.square(4,4);
+    static long centralSquares = D4 | D5 | E4 | E5;
+
+    public Result resultSignal() {
+        // No result, unless both kings are in the centre.
+        if((kings & white & centralSquares) == 0 || (kings & black & centralSquares) == 0)
+            return null;
+        // Kings on light squares: white won
+        else if((kings & E4) != 0 && (kings & D5) != 0)
+            return Result.WHITE_WIN;
+        // Kings on dark squares: black won
+        else if((kings & E5) != 0 && (kings & D4) != 0)
+            return Result.BLACK_WIN;
+        // Otherwise: draw
+        else
+            return Result.DRAW;
+    }
+
     public String debugBoard() {
         StringBuilder sb = new StringBuilder();
         for(int row = 7; row >=0; row--) {

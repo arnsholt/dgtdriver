@@ -75,9 +75,16 @@ public class MoveParser {
 
             ReachablePosition p = new ReachablePosition(state, null, null);
             ReachablePosition reachable = positions.get(p);
-            if(reachable == null) continue;
-            addReachablePositions(reachable, positions);
-            lastReachable = reachable;
+            if(reachable != null) {
+                addReachablePositions(reachable, positions);
+                lastReachable = reachable;
+            }
+            else {
+                Result result = state.resultSignal();
+                if(result != null) {
+                    // TODO
+                }
+            }
         }
 
         /* XXX: Using an ArrayList here is probably not optimal. Depending on

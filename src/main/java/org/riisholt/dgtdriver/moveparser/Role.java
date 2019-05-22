@@ -6,9 +6,7 @@ public enum Role {
     BISHOP(2, "B"),
     ROOK(3, "R"),
     QUEEN(4, "Q"),
-    KING(5, "K"),
-    DRAW(6, null),
-    WIN(7, null);
+    KING(5, "K");
 
     public final int index;
     public final String symbol;
