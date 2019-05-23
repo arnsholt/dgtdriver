@@ -6,100 +6,123 @@ import org.riisholt.dgtdriver.game.*;
 import java.util.*;
 
 public class MoveParser {
-    public static List<PlayedMove> parseMoves(List<DgtMessage> msgs) {
-        Board initialPosition = new Board();
-        Board rotatedInitialPosition = new Board(initialPosition);
+    public interface GameCallback { void gameComplete(Game game); }
+
+    private static Board initialPosition = new Board();
+    private static Board rotatedInitialPosition;
+    static {
+        rotatedInitialPosition = new Board();
         rotatedInitialPosition.rotate180();
+    }
 
-        Board state = null;
-        HashMap<ReachablePosition, ReachablePosition> positions = new HashMap<>();
-        boolean seenInitialPosition = false;
-        boolean rotate = false;
-        ReachablePosition lastReachable = null;
+    private GameCallback gameCallback;
 
-        for(DgtMessage msg: msgs) {
-            Board newState;
-            if(msg instanceof BoardDump) {
-                newState = ((BoardDump) msg).board();
-            }
-            else if(msg instanceof FieldUpdate) {
-                FieldUpdate update = (FieldUpdate) msg;
-                if(state == null)
-                    throw new IllegalArgumentException("Got FieldUpdate message before initial BoardDump.");
-                newState = new Board(state);
-                int square = rotate?
-                        // Rotation trick from https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Rotationby180degrees
-                        update.square() ^ 63:
-                        update.square();
-                if(update.role() == null) {
-                    if(newState.roleAt(square) == null) {
-                        throw new RuntimeException("Piece removed from empty square.");
-                    }
-                    newState.discard(square);
+    private Board state;
+    private HashMap<ReachablePosition, ReachablePosition> positions;
+    private boolean seenInitialPosition;
+    private boolean rotate;
+    private ReachablePosition lastReachable;
+
+    public MoveParser(GameCallback gameCallback) {
+        this.gameCallback = gameCallback;
+        resetState();
+    }
+
+    private void resetState() {
+        state = null;
+        positions = new HashMap<>();
+        seenInitialPosition = false;
+        rotate = false;
+        lastReachable = null;
+    }
+
+    public void gotMove(DgtMessage msg) {
+        Board newState;
+        if(msg instanceof BoardDump) {
+            newState = ((BoardDump) msg).board();
+        }
+        else if(msg instanceof FieldUpdate) {
+            FieldUpdate update = (FieldUpdate) msg;
+            if(state == null)
+                throw new IllegalArgumentException("Got FieldUpdate message before initial BoardDump.");
+            newState = new Board(state);
+            int square = rotate?
+                    // Rotation trick from https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Rotationby180degrees
+                    update.square() ^ 63:
+                    update.square();
+            if(update.role() == null) {
+                if(newState.roleAt(square) == null) {
+                    throw new RuntimeException("Piece removed from empty square.");
                 }
-                else {
-                    newState.put(square, update.color(), update.role());
-                }
-            }
-            else if(msg instanceof  BWTime) {
-                if(lastReachable != null) {
-                    if(rotate)
-                        ((BWTime) msg).rotate();
-                    lastReachable.timeInfo = (BWTime) msg;
-                }
-                continue;
+                newState.discard(square);
             }
             else {
-                throw new RuntimeException(String.format("Unhandled message type: %s", msg.getClass().getSimpleName()));
-            }
-
-            state = newState;
-            if(state == null) continue;
-
-            if(!seenInitialPosition) {
-                if(newState.equalSetup(initialPosition)) {
-                    seenInitialPosition = true;
-                    lastReachable = new ReachablePosition(initialPosition, null, null);
-                    positions.put(lastReachable, lastReachable);
-                    addReachablePositions(lastReachable, positions);
-                }
-                else if(newState.equalSetup(rotatedInitialPosition)) {
-                    seenInitialPosition = true;
-                    lastReachable = new ReachablePosition(initialPosition, null, null);
-                    positions.put(lastReachable, lastReachable);
-                    addReachablePositions(lastReachable, positions);
-                    state.rotate180();
-                    rotate = true;
-                }
-                continue;
-            }
-
-            ReachablePosition p = new ReachablePosition(state, null, null);
-            ReachablePosition reachable = positions.get(p);
-            if(reachable != null) {
-                addReachablePositions(reachable, positions);
-                lastReachable = reachable;
-            }
-            else {
-                Result result = state.resultSignal();
-                if(result != null) {
-                    // TODO
-                }
+                newState.put(square, update.color(), update.role());
             }
         }
+        else if(msg instanceof  BWTime) {
+            if(lastReachable != null) {
+                if(rotate)
+                    ((BWTime) msg).rotate();
+                lastReachable.timeInfo = (BWTime) msg;
+            }
+            return;
+        }
+        else {
+            throw new RuntimeException(String.format("Unhandled message type: %s", msg.getClass().getSimpleName()));
+        }
 
-        /* XXX: Using an ArrayList here is probably not optimal. Depending on
-         * exactly how ArrayList works it can be kinda bad or not too bad, but
-         * either using building the ArrayList backwards and reversing it or
-         * just using a LinkedList is probably better. */
-        List<PlayedMove> moves = new ArrayList<>();
-        if(lastReachable == null) return moves;
+        state = newState;
+        if(state == null) return;
+
+        if(!seenInitialPosition) {
+            if(newState.equalSetup(initialPosition)) {
+                seenInitialPosition = true;
+                lastReachable = new ReachablePosition(initialPosition, null, null);
+                positions.put(lastReachable, lastReachable);
+                addReachablePositions(lastReachable, positions);
+            }
+            else if(newState.equalSetup(rotatedInitialPosition)) {
+                seenInitialPosition = true;
+                lastReachable = new ReachablePosition(initialPosition, null, null);
+                positions.put(lastReachable, lastReachable);
+                addReachablePositions(lastReachable, positions);
+                state.rotate180();
+                rotate = true;
+            }
+            return;
+        }
+
+        ReachablePosition p = new ReachablePosition(state, null, null);
+        ReachablePosition reachable = positions.get(p);
+        if(reachable != null) {
+            addReachablePositions(reachable, positions);
+            lastReachable = reachable;
+        }
+        else {
+            Result result = state.resultSignal();
+            if(result != null) {
+                gameCallback.gameComplete(currentGame(result));
+                resetState();
+            }
+        }
+    }
+
+    public void close() {
+        gameCallback.gameComplete(currentGame(null));
+        resetState();
+    }
+
+    private Game currentGame(Result result) {
+        Game game = new Game();
+        game.moves = new ArrayList<>();
+        game.result = result;
+        if(lastReachable == null) return game;
 
         for(ReachablePosition reachable = lastReachable; reachable.from != null; reachable = reachable.from) {
-            moves.add(0, new PlayedMove(reachable.via.uci(), moveToSan(reachable), reachable.timeInfo));
+            game.moves.add(0, new PlayedMove(reachable.via.uci(), moveToSan(reachable), reachable.timeInfo));
         }
-
-        return moves;
+        return game;
     }
 
     private static String moveToSan(ReachablePosition r) {
@@ -215,7 +238,6 @@ class ReachablePosition {
     public int hashCode() { return ZobristHash.hashPieces(board); }
     public boolean equals(Object o) {
         if(!(o instanceof ReachablePosition)) return false;
-        //return samePosition(board, ((ReachablePosition) o).board);
         return board.equalSetup(((ReachablePosition) o).board);
     }
 }

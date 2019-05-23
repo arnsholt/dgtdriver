@@ -1,4 +1,4 @@
-package org.riisholt.dgtdriver.game;
+package org.riisholt.dgtdriver.moveparser;
 
 import org.riisholt.dgtdriver.BWTime;
 
