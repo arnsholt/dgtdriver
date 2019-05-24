@@ -513,10 +513,10 @@ public final class Board {
         incrementalHash = ZobristHash.hashPieces(this);
     }
 
-    static long D4 = Square.square(3,3);
-    static long D5 = Square.square(3,4);
-    static long E4 = Square.square(4,3);
-    static long E5 = Square.square(4,4);
+    static long D4 = 1L << Square.square(3,3);
+    static long D5 = 1L << Square.square(3,4);
+    static long E4 = 1L << Square.square(4,3);
+    static long E5 = 1L << Square.square(4,4);
     static long centralSquares = D4 | D5 | E4 | E5;
 
     public Result resultSignal() {

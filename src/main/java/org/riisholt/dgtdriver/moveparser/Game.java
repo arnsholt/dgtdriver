@@ -51,6 +51,7 @@ public class Game {
             ply++;
         }
         appendResult(sb);
+        sb.append('\n');
         return sb.toString();
     }
 
