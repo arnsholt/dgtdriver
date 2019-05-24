@@ -109,8 +109,10 @@ public class MoveParser {
     }
 
     public void close() {
-        gameCallback.gameComplete(currentGame(null));
-        resetState();
+        if(lastReachable != null) {
+            gameCallback.gameComplete(currentGame(null));
+            resetState();
+        }
     }
 
     private Game currentGame(Result result) {

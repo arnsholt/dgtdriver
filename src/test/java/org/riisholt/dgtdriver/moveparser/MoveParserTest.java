@@ -14,7 +14,7 @@ class MoveParserTest {
     void testParsing() throws java.io.IOException {
         testUci("1");
         testUci("2");
-        //testPgn("johan");
+        testPgn("johan");
     }
 
     void testUci(String prefix) throws java.io.IOException {
