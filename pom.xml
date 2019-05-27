@@ -13,6 +13,30 @@
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>A pure Java implementation of the DGT chess board interface.</description>
+    <url>https://github.com/arnsholt/dgtdriver</url>
+
+    <licenses>
+        <license>
+            <name>GNU Affero General Public License 3</name>
+            <url>https://www.gnu.org/licenses/agpl-3.0.en.html</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Arne Skjærholt</name>
+            <email>arnsholt@gmail.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/arnsholt/dgtdriver.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:arnsholt/dgtdriver.git</developerConnection>
+        <url>https://github.com/arnsholt/dgtdriver</url>
+    </scm>
+
     <build>
         <plugins>
             <plugin>
