@@ -129,19 +129,26 @@ public class MoveParser {
 
     private static String moveToSan(ReachablePosition r) {
         StringBuilder sb = new StringBuilder();
+        // Castling is easy; we just have to check whether it's long or short.
         if(r.via.type == Move.CASTLING) {
             sb.append(
                     Square.file(r.via.to) == 7?
                         "O-O":
                         "O-O-O");
         }
+        /* All non-castling moves have the format of possible prefix, a
+         * literal "x" in the case of a capture, and finally the target
+         * square. */
         else {
             if (r.via.role == Role.PAWN) {
+                // For pwan captures, the prefix is the origin file.
                 if (r.via.capture) {
                     sb.append(files[Square.file(r.via.from)]);
                 }
             }
             else {
+                /* Non-pawn moves always have a prefix. First is the piece
+                 * code, then possibly a disambiguation of the origin square. */
                 sb.append(r.via.role.symbol);
 
                 /* Disambiguate the origin square if necessary.
