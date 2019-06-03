@@ -172,11 +172,9 @@ public class MoveParser {
                      * - Have a different destination
                      * - Move a different piece
                      * - Promote differently (XXX: should be extraneous?)
+                     * - Come from the same square (i.e. it's the *same* move as `r.via`).
                      */
-                    if (m.to != r.via.to || m.role != r.via.role || m.promotion != r.via.promotion)
-                        continue;
-                    // - Come from the same square (i.e. it's the *same* move as `r.via`).
-                    if (m.from == r.via.from)
+                    if (m.to != r.via.to || m.role != r.via.role || m.promotion != r.via.promotion || m.from == r.via.from)
                         continue;
 
                     if (Square.rank(m.from) == Square.rank(r.via.from) || Square.file(m.from) != Square.file(r.via.from)) {
