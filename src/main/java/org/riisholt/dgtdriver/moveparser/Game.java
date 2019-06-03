@@ -36,14 +36,14 @@ public class Game {
                 sb.append(1 + ply/2)
                         .append(". ")
                         .append(m.san);
-                if(includeClock)
+                if(includeClock && m.clockInfo != null)
                     sb.append(' ')
                       .append(String.format("{[%%clk %s]}", m.clockInfo.leftTimeString()));
             }
             else {
                 sb.append(' ')
                         .append(m.san);
-                if(includeClock)
+                if(includeClock && m.clockInfo != null)
                     sb.append(' ')
                       .append(String.format("{[%%clk %s]}", m.clockInfo.rightTimeString()));
                 sb.append('\n');
