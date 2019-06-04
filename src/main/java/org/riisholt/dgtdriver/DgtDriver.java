@@ -4,6 +4,32 @@ import java.util.Arrays;
 
 import static org.riisholt.dgtdriver.DgtConstants.*;
 
+/**
+ * A class to interact with DGT chess boards. This class only implements the
+ * wire protocol used by the DGT boards, it is up to the user to set up the
+ * actual serial connection to the board (for reference, the serial format
+ * used is 9600 baud, 8 data bits, 1 stopbit, no parity, no flow control).
+ *
+ * <pre>DgtDriver.ReadCallback readCallback = ...; // Your read callback here.
+ * DgtDriver.WriteCallback writeCallback = ...; // Your write handler here.
+ * DgtDriver driver = new DgtDriver(readCallback,  writeCallback);
+ * driver.reset();
+ * driver.board();
+ * driver.updateNice();
+ * byte[] buffer = new byte[128];
+ * java.io.InputStream is = ...; // Or some other way of reading bytes.
+ * while(true) {
+ *     int read = is.read(buffer);
+ *     if(read == -1)
+ *         break; // End-of-file
+ *     // Arrays.copyOf to only send received bytes to the driver.
+ *     driver.gotBytes(java.util.Arrays.copyOf(buffer, read));
+ * }
+ * </pre>
+ *
+ * @author Arne Skjærholt
+ * @see org.riisholt.dgtdriver.moveparser.MoveParser
+ */
 public class DgtDriver {
     public interface ReadCallback { void gotMessage(DgtMessage msg); }
     public interface WriteCallback { void write(byte[] bytes); }

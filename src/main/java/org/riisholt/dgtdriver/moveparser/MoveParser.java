@@ -5,6 +5,17 @@ import org.riisholt.dgtdriver.game.*;
 
 import java.util.*;
 
+/**
+ * A class to parse raw DgtMessage events into a game of chess.
+ *
+ * <pre>MoveParser.GameCallback gameCallback = ...; // Your game callback here.
+ * MoveParser parser = new MoveParser(gameCallback);
+ * DgtDriver driver = new DgtDriver(parser::gotMove, writeCallback);
+ * </pre>
+ *
+ * @author Arne Skjærholt
+ * @see Game
+ */
 public class MoveParser {
     public interface GameCallback { void gameComplete(Game game); }
 
