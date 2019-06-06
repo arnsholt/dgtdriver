@@ -4,8 +4,21 @@ import org.riisholt.dgtdriver.game.Result;
 
 import java.util.List;
 
+/**
+ * A complete game of chess.
+ */
 public class Game {
+    /**
+     * The moves played during the game. Even numbered moves (zero-indexed)
+     * are white moves, while odd-numbered moves are black.
+     */
     public List<PlayedMove> moves;
+
+    /**
+     * The result of the game, if any. If parsing of the game is ended by
+     * calling {@link MoveParser#endGame()} directly, this member will be
+     * null.
+     */
     public Result result;
 
     public String uci() {
@@ -28,6 +41,12 @@ public class Game {
         return builder.toString();
     }
 
+    /**
+     * The game in PGN format, possibly including clock times.
+     *
+     * @param includeClock Include clock times for each move, if available.
+     * @return The PGN representation of the game.
+     */
     public String pgn(boolean includeClock) {
         int ply = 0;
         StringBuilder sb = new StringBuilder();

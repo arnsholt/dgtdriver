@@ -28,8 +28,8 @@ class MoveParserTest {
     Game readGame(String filename) throws java.io.IOException {
         List<Game> games = new ArrayList<>();
         MoveParser parser = new MoveParser(games::add);
-        processFile(filename, parser::gotMove);
-        parser.close();
+        processFile(filename, parser::gotMessage);
+        parser.endGame();
 
         assertEquals(1, games.size());
         return games.get(0);

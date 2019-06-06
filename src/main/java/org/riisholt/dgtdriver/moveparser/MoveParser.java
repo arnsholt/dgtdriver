@@ -6,15 +6,38 @@ import org.riisholt.dgtdriver.game.*;
 import java.util.*;
 
 /**
- * A class to parse raw DgtMessage events into a game of chess.
+ * <p>A class to parse raw DgtMessage events into a game of chess. This class
+ * is similar in style to DgtDriver, but is intended to wrap it and rather
+ * than emitting raw board events emit completed games as they are observed.
+ * Game completion can be signalled both on the board, or programmatically:
+ * on the board by placing both kings on the central four squares (on white
+ * squares for a white win, black squares for a black win, and on opposite
+ * colours for a draw), or programmatically by calling {@link #endGame()}.</p>
  *
- * <pre>MoveParser.GameCallback gameCallback = ...; // Your game callback here.
+ * <p>Of the various messages sent by the board, the parsing logic uses three
+ * to keep track of games: {@link org.riisholt.dgtdriver.BoardDump},
+ * {@link org.riisholt.dgtdriver.FieldUpdate}, and
+ * {@link org.riisholt.dgtdriver.BWTime}. The first two to track the pieces on
+ * the board, and the last to track the clock state. Since FieldUpdate
+ * messages are impossible to interpret correctly without already knowing the
+ * board state, it is required that a BoardDump message is received before any
+ * FieldUpdate messages. A basic usage of this class should therefore look
+ * like this:</p>
+ *
+ * <pre>
+ * MoveParser.GameCallback gameCallback = ...; // Your game callback here.
  * MoveParser parser = new MoveParser(gameCallback);
- * DgtDriver driver = new DgtDriver(parser::gotMove, writeCallback);
+ * DgtDriver driver = new DgtDriver(parser::gotMessage, writeCallback);
+ * driver.reset();
+ * driver.board();
+ * driver.clock();
+ * driver.updateNice();
+ * // Write data from serial connection with driver.gotBytes(...);
  * </pre>
  *
  * @author Arne Skjærholt
  * @see Game
+ * @see <a href="https://github.com/arnsholt/dgtpgn/">org.riisholt.dgtpgn</a>
  */
 public class MoveParser {
     public interface GameCallback { void gameComplete(Game game); }
@@ -34,6 +57,12 @@ public class MoveParser {
     private boolean rotate;
     private ReachablePosition lastReachable;
 
+    /**
+     * Class constructor.
+     *
+     * @param gameCallback The callback to invoke when a complete game has
+     *                     been parsed.
+     */
     public MoveParser(GameCallback gameCallback) {
         this.gameCallback = gameCallback;
         resetState();
@@ -47,7 +76,17 @@ public class MoveParser {
         lastReachable = null;
     }
 
-    public void gotMove(DgtMessage msg) {
+    /**
+     * Handles a message from the board. If the message results in a board
+     * state signalling a result (both kings in the central four squares), a
+     * game is emitted to the gameCallback parameter supplied to the
+     * constructor.
+     *
+     * @param msg The message received
+     * @throws IllegalArgumentException if a FieldUpdate message is received
+     *                                  before a BoardUpdate message.
+     */
+    public void gotMessage(DgtMessage msg) {
         Board newState;
         if(msg instanceof BoardDump) {
             newState = ((BoardDump) msg).board();
@@ -80,7 +119,8 @@ public class MoveParser {
             return;
         }
         else {
-            throw new RuntimeException(String.format("Unhandled message type: %s", msg.getClass().getSimpleName()));
+            // Ignore messages we don't use for parsing.
+            return;
         }
 
         state = newState;
@@ -119,7 +159,14 @@ public class MoveParser {
         }
     }
 
-    public void close() {
+    /**
+     * Ends the game currently in progress, if any. Invoking this method
+     * causes the gameComplete callback to be be invoked with the recorded
+     * game and the recording state to be reset; if no moves have been
+     * recorded, nothing happens. If a game is emitted, its {@link Game#result
+     * result} member will be null.
+     */
+    public void endGame() {
         if(lastReachable != null) {
             gameCallback.gameComplete(currentGame(null));
             resetState();
@@ -152,7 +199,7 @@ public class MoveParser {
          * square. */
         else {
             if (r.via.role == Role.PAWN) {
-                // For pwan captures, the prefix is the origin file.
+                // For pawn captures, the prefix is the origin file.
                 if (r.via.capture) {
                     sb.append(files[Square.file(r.via.from)]);
                 }
@@ -250,9 +297,9 @@ class ReachablePosition {
         via = v;
     }
 
-    /* hashCode() can't use board.incrementalHash, since that includes a the
+    /* hashCode() can't use board.incrementalHash, since that includes the
      * turn member in the hash computation, which messes things up since we
-     * don't track turn in the board setup setup. */
+     * don't track turn in the board setup. */
     public int hashCode() { return ZobristHash.hashPieces(board); }
     public boolean equals(Object o) {
         if(!(o instanceof ReachablePosition)) return false;
