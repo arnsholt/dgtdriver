@@ -162,11 +162,22 @@ public class DgtDriver {
      * @param bytes The bytes received
      */
     public void gotBytes(byte[] bytes) {
+        // Make sure there's room in the buffer for the incoming data.
         if(position + bytes.length > buffer.length)
-            buffer = Arrays.copyOf(buffer, buffer.length + 128);
+            buffer = Arrays.copyOf(buffer, buffer.length + bytes.length);
+
+        // Add data to buffer, and process any complete messages.
         System.arraycopy(bytes, 0, buffer, position, bytes.length);
         position += bytes.length;
         tryEmitMessage();
+
+        /* Keep the buffer reasonably sized if possible. Apart from the
+         * DGT_EE_MOVES message, which dumps moves stored in EEPROM, the
+         * largest message is DGT_BOARD_DUMP at 67 bytes, so 128 bytes should
+         * be ample space.
+         */
+        if(buffer.length > 128 && position < 128)
+            buffer = Arrays.copyOf(buffer, 128);
     }
 
     private void tryEmitMessage() {

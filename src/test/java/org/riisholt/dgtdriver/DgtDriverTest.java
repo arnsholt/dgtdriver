@@ -1,6 +1,7 @@
 package org.riisholt.dgtdriver;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,10 +17,13 @@ class DgtDriverTest {
         List<byte[]> msgbytes = TestUtils.readBytes("1.pickle");
         List<DgtMessage> first = processBytes(msgbytes);
         List<DgtMessage> second = processBytesSingly(msgbytes);
+        List<DgtMessage> third = processBytesAll(msgbytes);
         assertEquals(first.size(), second.size());
+        assertEquals(first.size(), third.size());
 
         for(int i = 0; i < first.size(); i++) {
             assertEquals(first.get(i).getClass(), second.get(i).getClass());
+            assertEquals(first.get(i).getClass(), third.get(i).getClass());
             // TODO: Make sure messages are exactly equal too.
         }
     }
@@ -44,4 +48,16 @@ class DgtDriverTest {
         return msgs;
     }
 
+    List<DgtMessage> processBytesAll(List<byte[]> msgbytes) {
+        ArrayList<DgtMessage> msgs = new ArrayList<>();
+        DgtDriver driver = new DgtDriver(msgs::add, null);
+        byte[] data = new byte[0];
+        for(byte[] chunk: msgbytes) {
+            byte[] newData = Arrays.copyOf(data, data.length + chunk.length);
+            System.arraycopy(chunk, 0, newData, data.length, chunk.length);
+            data = newData;
+        }
+        driver.gotBytes(data);
+        return msgs;
+    }
 }
