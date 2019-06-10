@@ -5,16 +5,20 @@ import java.util.Arrays;
 import static org.riisholt.dgtdriver.DgtConstants.*;
 
 /**
- * A class to interact with DGT chess boards. This class only implements the
- * wire protocol used by the DGT boards, it is up to the user to set up the
- * actual serial connection to the board (for reference, the serial format
- * used is 9600 baud, 8 data bits, 1 stopbit, no parity, no flow control).
+ * <p>A class to interact with DGT chess boards. This class only implements
+ * the wire protocol used by the DGT boards, requiring the user to provide a
+ * callback function to write bytes to the serial connection and communicating
+ * the bytes received from the serial port with {@link #gotBytes(byte[])}.
+ * Incoming bytes are processed, and as complete messages are received the
+ * read callback is invoked. A basic use of the driver would look like this:</p>
  *
- * <pre>DgtDriver.ReadCallback readCallback = ...; // Your read callback here.
+ * <pre>
+ * DgtDriver.ReadCallback readCallback = ...; // Your read callback here.
  * DgtDriver.WriteCallback writeCallback = ...; // Your write handler here.
  * DgtDriver driver = new DgtDriver(readCallback,  writeCallback);
  * driver.reset();
  * driver.board();
+ * driver.clock();
  * driver.updateNice();
  * byte[] buffer = new byte[128];
  * java.io.InputStream is = ...; // Or some other way of reading bytes.
@@ -26,6 +30,9 @@ import static org.riisholt.dgtdriver.DgtConstants.*;
  *     driver.gotBytes(java.util.Arrays.copyOf(buffer, read));
  * }
  * </pre>
+ *
+ * <p></p>For reference, the serial format used for the serial communication
+ * is 9600  baud, 8 data bits, 1 stop bit, no parity, no flow control.</p>
  *
  * @author Arne Skjærholt
  * @see org.riisholt.dgtdriver.moveparser.MoveParser
@@ -40,33 +47,120 @@ public class DgtDriver {
     private byte[] buffer = new byte[128];
     private int position = 0;
 
+    /**
+     * Class constructor.
+     *
+     * @param read Callback invoked by {@link #gotBytes(byte[])} when a
+     *             complete message is received.
+     * @param write Callback invoked to write bytes to the serial connection.
+     */
     public DgtDriver(ReadCallback read, WriteCallback write) {
         readCallback = read;
         writeCallback = write;
     }
 
-    public void reset()           { writeByte(DGT_SEND_RESET); }
-    public void toBusmode()       { writeByte(DGT_TO_BUSMODE); }
+    /** Puts the board in idle mode. */
+    public void reset() { writeByte(DGT_SEND_RESET); }
+
+    /** Puts the board in bus mode. */
+    public void toBusmode() { writeByte(DGT_TO_BUSMODE); }
+
+    /**
+     * Starts the board's bootloader. I have been unable to find documentation
+     * of this beyond "Makes a long jump to the FC00 boot loader code. Start
+     * FLIP now", so the exact purpose is unclear.
+     */
     public void startBootloader() { writeByte(DGT_STARTBOOTLOADER); }
-    public void clock()           { writeByte(DGT_SEND_CLK); }
-    public void board()           { writeByte(DGT_SEND_BRD); }
-    public void update()          { writeByte(DGT_SEND_UPDATE); }
-    public void updateBoard()     { writeByte(DGT_SEND_UPDATE_BRD); }
-    public void serialnr()        { writeByte(DGT_RETURN_SERIALNR); }
-    public void busadress()       { writeByte(DGT_RETURN_BUSADRES); }
-    public void trademark()       { writeByte(DGT_SEND_TRADEMARK); }
-    public void eeMoves()         { writeByte(DGT_SEND_EE_MOVES); }
-    public void updateNice()      { writeByte(DGT_SEND_UPDATE_NICE); }
-    public void batteryStatus()   { writeByte(DGT_SEND_BATTERY_STATUS); }
-    public void version()         { writeByte(DGT_SEND_VERSION); }
+
+    /**
+     * Requests the board to send the current clock state. Results in a {@link
+     * BWTime} message.
+     */
+    public void clock() { writeByte(DGT_SEND_CLK); }
+
+    /**
+     * Requests the board to send the full board state. Results in a {@link
+     * BoardDump} message.
+     */
+    public void board() { writeByte(DGT_SEND_BRD); }
+
+    /**
+     * Puts the board in update mode. The board will send {@link FieldUpdate}
+     * and {@link BWTime} messages as long as it is in update mode.
+     */
+    public void update() { writeByte(DGT_SEND_UPDATE); }
+
+    /**
+     * Puts the board in nice update mode. The board will send {@link
+     * FieldUpdate} and {@link BWTime} messages, as in update mode, but time
+     * updates will only be sent when the clock changes.
+     */
+    public void updateNice() { writeByte(DGT_SEND_UPDATE_NICE); }
+
+    /**
+     * Puts the board in board update mode. The board will send {@link
+     * FieldUpdate} messages as long as it is in board update mode.
+     */
+    public void updateBoard() { writeByte(DGT_SEND_UPDATE_BRD); }
+
+    /**
+     * Requests the board to send its serial number. Results in a {@link
+     * SerialnrMessage} message.
+     */
+    public void serialnr() { writeByte(DGT_RETURN_SERIALNR); }
+
+    /**
+     * Requests the board to send its long serial number. Results in a {@link
+     * LongSerialnrMessage}.
+     */
+    public void longSerialnr() { writeByte(DGT_RETURN_LONG_SERIALNR); }
+
+    /**
+     * Requests the board to send its board address. Results in a {@link
+     * Busadress} message.
+     */
+    public void busadress() { writeByte(DGT_RETURN_BUSADRES); }
+
+    /**
+     * Requests the board to send its trademark message. Results in a {@link
+     * TrademarkMessage} message.
+     */
+    public void trademark() { writeByte(DGT_SEND_TRADEMARK); }
+
+    /**
+     * Requests the board to send the moves stored in its EEPROM. The response
+     * to this command is not yet handled by the driver.
+     */
+    public void eeMoves() { writeByte(DGT_SEND_EE_MOVES); }
+
+    /**
+     * Requests the board to send the status of its battery. The response to
+     * this command is not yet handled by the driver.
+     */
+    public void batteryStatus() { writeByte(DGT_SEND_BATTERY_STATUS); }
+
+    /**
+     * Requests the board to send its version. Results in a {@link
+     * VersionMessage}.
+     */
+    public void version() { writeByte(DGT_SEND_VERSION); }
+
+    /* Commented out: commands for DGT draughts boards
     public void board50b()        { writeByte(DGT_SEND_BRD_50B); }
     public void scan50b()         { writeByte(DGT_SCAN_50B); }
     public void board50w()        { writeByte(DGT_SEND_BRD_50W); }
     public void scan50w()         { writeByte(DGT_SCAN_50W); }
-    public void scan100()         { writeByte(DGT_SCAN_100); }
-    public void longSerialnr()    { writeByte(DGT_RETURN_LONG_SERIALNR); }
+    public void scan100()         { writeByte(DGT_SCAN_100); }*/
     // TODO: Clock commands.
 
+    /**
+     * Sends received bytes to the driver. Any complete messages parsed will
+     * be emitted via the read callback passed to the constructor, and any
+     * trailing partial message will be buffered and combined with the next
+     * chunk of bytes received.
+     *
+     * @param bytes The bytes received
+     */
     public void gotBytes(byte[] bytes) {
         if(position + bytes.length > buffer.length)
             buffer = Arrays.copyOf(buffer, buffer.length + 128);

@@ -2,6 +2,37 @@ package org.riisholt.dgtdriver;
 
 import java.time.Duration;
 
+/**
+ * <p>Clock state. <em>IMPORTANT:</em> The clock state operates purely in
+ * terms of the <em>left</em> and <em>right</em> player; there is no inherent
+ * conception of white or black (but see
+ * {@link org.riisholt.dgtdriver.moveparser.PlayedMove#clockInfo}). This class
+ * contains the time remaining for the left and right players (encoded as a
+ * {@link Duration}), as well as status flags for each player and general
+ * status information. For each player, the following flags are indicated:</p>
+ *
+ * <ul>
+ *     <li>Is the player's flag fallen and the clock blocked at zero?</li>
+ *     <li>Is the player's time per move indicator on?</li>
+ *     <li>Is the flag signal indicated for the player? This is a distinct
+ *     case from the first flag, as the flag is also indicated when multiple
+ *     time periods are used (such as two hours for 40 moves, etc.), in which
+ *     case the arbiter must ensure that enough moves are played before the
+ *     flag falls.</li>
+ * </ul>
+ *
+ * <p>The following general clock state flags are also indicated:</p>
+ *
+ * <ul>
+ *     <li>Is a clock connected?</li>
+ *     <li>Is the clock running?</li>
+ *     <li>Is the tumbler high to the left?</li>
+ *     <li>Is the tumbler high to the right?</li>
+ *     <li>Does the clock indicate low battery?</li>
+ *     <li>Is it the left player to move?</li>
+ *     <li>Is it the right player to move?</li>
+ * </ul>
+ */
 public class BWTime implements DgtMessage {
     private Duration left, right;
     private byte leftFlags, rightFlags, clockStatusFlags;

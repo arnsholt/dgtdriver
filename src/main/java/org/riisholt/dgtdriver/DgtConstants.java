@@ -3,6 +3,9 @@ package org.riisholt.dgtdriver;
 import org.riisholt.dgtdriver.game.Role;
 import static org.riisholt.dgtdriver.game.Role.*;
 
+/**
+ * Constants used in board communication, and conversion utilities.
+ */
 public class DgtConstants {
     /* Messages to board that are not responded to. */
     public static final byte DGT_SEND_RESET      = 0x40;
@@ -79,6 +82,15 @@ public class DgtConstants {
     public static final byte WCROWN = 0x07;
     public static final byte BCROWN = 0x0a;
 
+    /**
+     * Converts DGT square code to the coordinate system used by the game code
+     * in {@link org.riisholt.dgtdriver.game}.
+     *
+     * @param dgtCode A dgt square code from 0 to 63.
+     * @return A square code in the coordinate system used by {@link
+     * org.riisholt.dgtdriver.game.Board}
+     * @throws DgtProtocolException If square code is outside of [0,63].
+     */
     public static int dgtCodeToSquare(int dgtCode) throws DgtProtocolException {
         /* The DGT board numbers squares back to front, left to right, as
          * viewed by white. Thus A8 is 0, B8 is 1, A7 is8, and so on. */
@@ -89,6 +101,15 @@ public class DgtConstants {
         return rank*8 + file;
     }
 
+    /**
+     * Converts a DGT piece code to game code. The DGT piece codes contain
+     * both piece and colour in a single code, whereas the game code uses
+     * separate variables for the role and colour attributes.
+     *
+     * @param dgtCode A DGT piece code.
+     * @return Corresponding game code colour. True for white, false for black
+     * @throws DgtProtocolException If the input code is invalid.
+     */
     public static boolean dgtCodeToColor(int dgtCode) throws DgtProtocolException {
         if(dgtCode == EMPTY)
             return true; // XXX: Empty arbitrarily decreed to be white.
@@ -107,6 +128,13 @@ public class DgtConstants {
             throw new DgtProtocolException(String.format("Invalid piece code 0x%x", dgtCode));
     }
 
+    /**
+     * Converts a DGT piece code to game code role.
+     *
+     * @param dgtCode A DGT piece code.
+     * @return Corresponding game code role
+     * @throws DgtProtocolException If the input code is invalid.
+     */
     public static Role dgtCodeToRole(int dgtCode) throws DgtProtocolException {
         switch(dgtCode) {
             case EMPTY:

@@ -15,7 +15,11 @@ public class PlayedMove {
     /** The moves representation in standard algebraic notation. */
     public String san;
 
-    /** The state of the clock when the move was played. */
+    /**
+     * The state of the clock when the move was played. The move parser
+     * corrects for board orientation, such that the linked BWTime object
+     * always has the white player on the left and black on the right.
+     */
     public BWTime clockInfo;
 
     /**

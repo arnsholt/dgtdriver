@@ -10,6 +10,17 @@ public class VersionMessage implements DgtMessage {
         minor = data[1];
     }
 
+    /**
+     * The major version number.
+     *
+     * @return Major version number
+     */
     public byte major() { return major; }
+
+    /**
+     * The minor version number.
+     *
+     * @return Minor version number
+     */
     public byte minor() { return minor; }
 }

@@ -1,5 +1,8 @@
 package org.riisholt.dgtdriver;
 
+/**
+ * A board's bus address.
+ */
 public class Busadress implements DgtMessage {
     private int address;
     public Busadress(byte[] data) throws DgtProtocolException {
