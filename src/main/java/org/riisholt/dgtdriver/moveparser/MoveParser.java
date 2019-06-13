@@ -51,7 +51,7 @@ public class MoveParser {
 
     private GameCallback gameCallback;
 
-    private Board state;
+    private Board boardState;
     private HashMap<ReachablePosition, ReachablePosition> positions;
     private boolean seenInitialPosition;
     private boolean rotate;
@@ -65,11 +65,11 @@ public class MoveParser {
      */
     public MoveParser(GameCallback gameCallback) {
         this.gameCallback = gameCallback;
+        boardState = null;
         resetState();
     }
 
     private void resetState() {
-        state = null;
         positions = new HashMap<>();
         seenInitialPosition = false;
         rotate = false;
@@ -93,9 +93,9 @@ public class MoveParser {
         }
         else if(msg instanceof FieldUpdate) {
             FieldUpdate update = (FieldUpdate) msg;
-            if(state == null)
+            if(boardState == null)
                 throw new IllegalArgumentException("Got FieldUpdate message before initial BoardDump.");
-            newState = new Board(state);
+            newState = new Board(boardState);
             int square = rotate?
                     // Rotation trick from https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Rotationby180degrees
                     update.square() ^ 63:
@@ -123,8 +123,8 @@ public class MoveParser {
             return;
         }
 
-        state = newState;
-        if(state == null) return;
+        boardState = newState;
+        if(boardState == null) return;
 
         if(!seenInitialPosition) {
             if(newState.equalSetup(initialPosition)) {
@@ -138,20 +138,20 @@ public class MoveParser {
                 lastReachable = new ReachablePosition(initialPosition, null, null);
                 positions.put(lastReachable, lastReachable);
                 addReachablePositions(lastReachable, positions);
-                state.rotate180();
+                boardState.rotate180();
                 rotate = true;
             }
             return;
         }
 
-        ReachablePosition p = new ReachablePosition(state, null, null);
+        ReachablePosition p = new ReachablePosition(boardState, null, null);
         ReachablePosition reachable = positions.get(p);
         if(reachable != null) {
             addReachablePositions(reachable, positions);
             lastReachable = reachable;
         }
         else {
-            Result result = state.resultSignal();
+            Result result = boardState.resultSignal();
             if(result != null) {
                 gameCallback.gameComplete(currentGame(result));
                 resetState();
