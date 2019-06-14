@@ -8,9 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import org.riisholt.dgtdriver.moveparser.MoveParser;
-import org.riisholt.dgtdriver.moveparser.PlayedMove;
-
 class DgtDriverTest {
     @Test
     void testReading() throws java.io.IOException {
