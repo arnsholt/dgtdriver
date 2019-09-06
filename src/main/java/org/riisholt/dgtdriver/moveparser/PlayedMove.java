@@ -12,7 +12,7 @@ public class PlayedMove {
      */
     public String uci;
 
-    /** The moves representation in standard algebraic notation. */
+    /** The move's representation in standard algebraic notation. */
     public String san;
 
     /**
