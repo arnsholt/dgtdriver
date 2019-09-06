@@ -34,8 +34,8 @@ import java.time.Duration;
  * </ul>
  */
 public class BWTime implements DgtMessage {
-    private Duration left, right;
-    private byte leftFlags, rightFlags, clockStatusFlags;
+    public final Duration left, right;
+    public final byte leftFlags, rightFlags, clockStatusFlags;
 
     public BWTime(byte[] data) throws DgtProtocolException {
         if(data.length != 7)
@@ -52,6 +52,14 @@ public class BWTime implements DgtMessage {
                              .plusSeconds(decodeBcd(data[5]));
 
         clockStatusFlags = data[6];
+    }
+
+    public BWTime(Duration left, byte leftFlags, Duration right, byte rightFlags, byte clockStatusFlags) {
+        this.left = left;
+        this.leftFlags = leftFlags;
+        this.right = right;
+        this.rightFlags = rightFlags;
+        this.clockStatusFlags = clockStatusFlags;
     }
 
     public boolean leftFinalFlag() { return (leftFlags & 0x01) != 0; }
@@ -73,22 +81,18 @@ public class BWTime implements DgtMessage {
     public String leftTimeString() { return timeString(left); }
     public String rightTimeString() { return timeString(right); }
 
-    public Duration left() { return left; }
-    public Duration right() { return right; }
-
-    public void rotate() {
-        byte origLeft = leftFlags;
-        leftFlags = rightFlags;
-        rightFlags = origLeft;
-
+    public BWTime rotate() {
         /* The flags for left/right high, left to move, and right to move
          * depend on the orientation of the board (assuming the clock is
          * always on the same side of the board). We flip those bits by
          * XOR-ing in a one in the appropriate position.
          */
-        clockStatusFlags ^= 0x02;
-        clockStatusFlags ^= 0x08;
-        clockStatusFlags ^= 0x10;
+        byte newClockStatus = clockStatusFlags;
+        newClockStatus = 0x02;
+        newClockStatus = 0x08;
+        newClockStatus = 0x10;
+
+        return new BWTime(right, rightFlags, left, leftFlags, newClockStatus);
     }
 
     private static int decodeBcd(byte b){
