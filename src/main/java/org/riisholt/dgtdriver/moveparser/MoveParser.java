@@ -174,15 +174,15 @@ public class MoveParser {
     }
 
     private Game currentGame(Result result) {
-        Game game = new Game();
-        game.moves = new ArrayList<>();
-        game.result = result;
-        if(lastReachable == null) return game;
+        if(lastReachable == null) return new Game(null, null);
+
+        ArrayList<PlayedMove> moves = new ArrayList<>();
 
         for(ReachablePosition reachable = lastReachable; reachable.from != null; reachable = reachable.from) {
-            game.moves.add(0, new PlayedMove(reachable.via.uci(), moveToSan(reachable), reachable.timeInfo));
+            moves.add(0, new PlayedMove(reachable.via.uci(), moveToSan(reachable), reachable.timeInfo));
         }
-        return game;
+
+        return new Game(moves, result);
     }
 
     private static String moveToSan(ReachablePosition r) {

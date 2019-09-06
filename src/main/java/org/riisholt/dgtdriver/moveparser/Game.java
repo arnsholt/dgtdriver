@@ -2,6 +2,7 @@ package org.riisholt.dgtdriver.moveparser;
 
 import org.riisholt.dgtdriver.game.Result;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -12,14 +13,19 @@ public class Game {
      * The moves played during the game. Even numbered moves (zero-indexed)
      * are white moves, while odd-numbered moves are black.
      */
-    public List<PlayedMove> moves;
+    public final List<PlayedMove> moves;
 
     /**
      * The result of the game, if any. If parsing of the game is ended by
      * calling {@link MoveParser#endGame()} directly, this member will be
      * null.
      */
-    public Result result;
+    public final Result result;
+
+    public Game(List<PlayedMove> moves, Result result) {
+        this.moves = Collections.unmodifiableList(moves);
+        this.result = result;
+    }
 
     public String uci() {
         int ply = 0;
