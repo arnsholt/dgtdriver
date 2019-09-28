@@ -11,9 +11,23 @@ import org.riisholt.dgtdriver.game.Role;
  * board.
  */
 public class FieldUpdate implements DgtMessage {
-    private int square;
-    private boolean color;
-    private Role role;
+    /**
+     * The square updated. The codes are in the coordinates used by {@link
+     * org.riisholt.dgtdriver.game.Board} (a1=0, h1=7, a2=8, ..., h8=63), not
+     * the somewhat idiosyncratic coordinates transmitted by the board (a8=0,
+     * b8=1, h8=7, ... h1=63).
+     */
+    public final int square;
+
+    /**
+     * Is the piece placed on the square white?
+     */
+    public final boolean color;
+
+    /**
+     * The piece type placed on the square. If a square is now empty, null is returned.
+     */
+    public final Role role;
 
     public FieldUpdate(byte[] data) throws DgtProtocolException {
         if(data.length != 2)
@@ -23,28 +37,4 @@ public class FieldUpdate implements DgtMessage {
         color = DgtConstants.dgtCodeToColor(data[1]);
         role = DgtConstants.dgtCodeToRole(data[1]);
     }
-
-    /**
-     * The square updated. The codes are in the coordinates used by {@link
-     * org.riisholt.dgtdriver.game.Board} (a1=0, h1=7, a2=8, ..., h8=63), not
-     * the somewhat idiosyncratic coordinates transmitted by the board (a8=0,
-     * b8=1, h8=7, ... h1=63).
-     *
-     * @return The index of the square updates
-     */
-    public int square() { return square; }
-
-    /**
-     * Is the piece placed on the square white?
-     *
-     * @return True for white pieces, false for black
-     */
-    public boolean color() { return color; }
-
-    /**
-     * The piece type placed on the square. If a square is now empty, null is returned.
-     *
-     * @return The type of piece placed
-     */
-    public Role role() { return role; }
 }

@@ -1,7 +1,15 @@
 package org.riisholt.dgtdriver;
 
 public class VersionMessage implements DgtMessage {
-    private byte major, minor;
+    /**
+     * The major version number.
+     */
+    public final byte major;
+
+    /**
+     * The minor version number.
+     */
+    public final byte minor;
 
     public VersionMessage(byte[] data) throws DgtProtocolException {
         if(data.length != 2)
@@ -9,18 +17,4 @@ public class VersionMessage implements DgtMessage {
         major = data[0];
         minor = data[1];
     }
-
-    /**
-     * The major version number.
-     *
-     * @return Major version number
-     */
-    public byte major() { return major; }
-
-    /**
-     * The minor version number.
-     *
-     * @return Minor version number
-     */
-    public byte minor() { return minor; }
 }

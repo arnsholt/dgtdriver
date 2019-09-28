@@ -10,17 +10,17 @@ public class PlayedMove {
      * The move's representation in UCI format (for example e2e4 for e4 or
      * g8f6 for ...Nf6).
      */
-    public String uci;
+    public final String uci;
 
-    /** The moves representation in standard algebraic notation. */
-    public String san;
+    /** The move's representation in standard algebraic notation. */
+    public final String san;
 
     /**
      * The state of the clock when the move was played. The move parser
      * corrects for board orientation, such that the linked BWTime object
      * always has the white player on the left and black on the right.
      */
-    public BWTime clockInfo;
+    public final BWTime clockInfo;
 
     /**
      * Utility class constructor.
