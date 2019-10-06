@@ -227,8 +227,8 @@ public class DgtDriver {
                         msg = new FieldUpdate(data);
                         break;
                     case DGT_EE_MOVES:
-                        // TODO
-                        return;
+                        msg = new EEMoves(data);
+                        break;
                     case DGT_BUSADRES:
                         msg = new Busadress(data);
                         break;
