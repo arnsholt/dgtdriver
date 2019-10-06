@@ -87,11 +87,7 @@ public class BWTime implements DgtMessage {
          * always on the same side of the board). We flip those bits by
          * XOR-ing in a one in the appropriate position.
          */
-        byte newClockStatus = clockStatusFlags;
-        newClockStatus = 0x02;
-        newClockStatus = 0x08;
-        newClockStatus = 0x10;
-
+        byte newClockStatus = (byte) (clockStatusFlags ^ 0x1a);
         return new BWTime(right, rightFlags, left, leftFlags, newClockStatus);
     }
 

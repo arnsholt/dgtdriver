@@ -113,7 +113,7 @@ public class MoveParser {
         else if(msg instanceof  BWTime) {
             if(lastReachable != null) {
                 if(rotate)
-                    ((BWTime) msg).rotate();
+                    msg = ((BWTime) msg).rotate();
                 lastReachable.timeInfo = (BWTime) msg;
             }
             return;
