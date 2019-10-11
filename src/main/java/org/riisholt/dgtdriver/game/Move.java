@@ -14,6 +14,18 @@ public final class Move implements Comparable<Move> {
 
     private int score;
 
+    public Move() {}
+
+    public Move(Move move) {
+        this.type = move.type;
+        this.role = move.role;
+        this.from = move.from;
+        this.capture = move.capture;
+        this.to = move.to;
+        this.promotion = move.promotion;
+        this.score = move.score;
+    }
+
     void set(Board board, int type, Role role, int from, boolean capture, int to, Role promotion) {
         // Overwrite the current move. This is like a constructor, but reuses
         // an existing object.

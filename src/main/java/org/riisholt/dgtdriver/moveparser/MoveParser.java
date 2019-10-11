@@ -179,7 +179,11 @@ public class MoveParser {
         ArrayList<PlayedMove> moves = new ArrayList<>();
 
         for(ReachablePosition reachable = lastReachable; reachable.from != null; reachable = reachable.from) {
-            moves.add(0, new PlayedMove(reachable.via.uci(), moveToSan(reachable), reachable.timeInfo));
+            moves.add(0, new PlayedMove(
+                    moveToSan(reachable),
+                    reachable.timeInfo,
+                    reachable.board,
+                    reachable.via));
         }
 
         return new Game(moves, result);

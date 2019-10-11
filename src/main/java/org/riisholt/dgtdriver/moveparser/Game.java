@@ -34,11 +34,11 @@ public class Game {
             if(ply % 2 == 0) {
                 builder.append(1 + ply/2)
                         .append(". ")
-                        .append(m.uci);
+                        .append(m.move.uci());
             }
             else {
                 builder.append(' ')
-                        .append(m.uci)
+                        .append(m.move.uci())
                         .append('\n');
             }
             ply++;
