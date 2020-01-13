@@ -39,7 +39,7 @@ public class EEMoves implements DgtMessage {
                 /* Not sure if this is necessary, but in case we somehow get
                  * partial data at the end, break if we'd overflow.
                  */
-                if(i+1 >= data.length)
+                if(i + 1 >= data.length)
                     break;
                 events.add(new FieldEvent((byte) (value & 0x0f), data[i+1]));
                 i += 2;
@@ -50,6 +50,12 @@ public class EEMoves implements DgtMessage {
                     break;
                 events.add(new ClockEvent((value & 0x10) == 0x10, (byte) (value & 0x0f), data[i+1], data[i+2]));
                 i += 3;
+            }
+            else {
+                /* XXX: Unrecognized data. Increment to make sure we don't
+                 * loop forever. Consider better thing to do here?
+                 */
+                i++;
             }
         }
 
