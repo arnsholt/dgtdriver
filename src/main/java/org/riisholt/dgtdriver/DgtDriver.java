@@ -242,10 +242,10 @@ public class DgtDriver {
                         msg = new VersionMessage(data);
                         break;
                     case DGT_BOARD_DUMP_50B:
-                        // TODO
+                        // TODO: Checkers.
                         return;
                     case DGT_BOARD_DUMP_50W:
-                        // TODO
+                        // TODO: Checkers.
                         return;
                     case DGT_LONG_SERIALNR:
                         msg = new LongSerialnrMessage(data);
