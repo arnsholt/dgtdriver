@@ -1,11 +1,11 @@
 package org.riisholt.dgtdriver;
 
 public abstract class DgtClockMessage {
-    public abstract byte[] getData();
+    public abstract byte[] getMessageData();
     public abstract byte getMessageId();
 
-    public byte[] toBytes() throws DgtProtocolException {
-        byte[] data = getData();
+    public byte[] toBytes() {
+        byte[] data = getMessageData();
 
         byte[] bytes = new byte[data.length + 5];
 

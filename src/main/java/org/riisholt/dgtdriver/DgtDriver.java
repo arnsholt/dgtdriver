@@ -2,6 +2,8 @@ package org.riisholt.dgtdriver;
 
 import java.util.Arrays;
 
+import java.time.Duration;
+
 import static org.riisholt.dgtdriver.DgtConstants.*;
 
 /**
@@ -151,7 +153,31 @@ public class DgtDriver {
     public void board50w()        { writeByte(DGT_SEND_BRD_50W); }
     public void scan50w()         { writeByte(DGT_SCAN_50W); }
     public void scan100()         { writeByte(DGT_SCAN_100); }*/
-    // TODO: Clock commands.
+
+    // Clock commands.
+    // TODO: Figure out appropriate API for clock display message.
+    public void clockIcons(ClockIconsMessage.Icons left, ClockIconsMessage.Icons right, ClockIconsMessage.GeneralIcons general) {
+        writeClockMessage(new ClockIconsMessage(left, right, general));
+    }
+
+    public void clockEnd() {
+        writeClockMessage(new ClockEndMessage());
+    }
+
+    public void clockButton() {
+        writeClockMessage(new ClockButtonMessage());
+    }
+
+    public void clockVersion() {
+        writeClockMessage(new ClockVersionMessage());
+    }
+
+    public void clockSetnrun(Duration leftTime, Duration rightTime) {
+        writeClockMessage(null);
+    }
+
+    public void clockBeep(byte duration) {
+    }
 
     /**
      * Sends received bytes to the driver. Any complete messages parsed will
@@ -276,4 +302,8 @@ public class DgtDriver {
     }
 
     private void writeByte(byte b) { writeCallback.write(new byte[]{b}); }
+
+    private void writeClockMessage(DgtClockMessage m) {
+        writeCallback.write(m.toBytes());
+    }
 }
