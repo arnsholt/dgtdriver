@@ -247,6 +247,7 @@ public class DgtDriver {
                         msg = new BoardDump(data);
                         break;
                     case DGT_BWTIME:
+                        // TODO: Handle clock ACKs.
                         msg = new BWTime(data);
                         break;
                     case DGT_FIELD_UPDATE:
@@ -304,6 +305,9 @@ public class DgtDriver {
     private void writeByte(byte b) { writeCallback.write(new byte[]{b}); }
 
     private void writeClockMessage(DgtClockMessage m) {
+        // XXX: We're supposed to wait for a clock ACK message from the board
+        // before we send the next clock message. Need to implement that
+        // somehow.
         writeCallback.write(m.toBytes());
     }
 }
