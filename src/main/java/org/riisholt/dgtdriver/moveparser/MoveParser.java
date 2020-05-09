@@ -173,7 +173,13 @@ public class MoveParser {
         }
     }
 
-    private Game currentGame(Result result) {
+    /**
+     * Get the moves of the currently in progress game.
+     *
+     * @param result The result to attach to the output {@link Game}
+     * @return A {@link Game} containing the in-progress game
+     */
+    public Game currentGame(Result result) {
         if(lastReachable == null) return new Game(null, null);
 
         ArrayList<PlayedMove> moves = new ArrayList<>();
