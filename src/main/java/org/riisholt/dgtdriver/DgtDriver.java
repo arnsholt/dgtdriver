@@ -216,14 +216,17 @@ public class DgtDriver {
             if((message & 0x80) == 0) {
                 //Log.e(TAG, "Bad command byte, high bit zero");
                 scrollBadBytes(1);
+                continue;
             }
             if((sizeMsb & 0x80) != 0) {
                 //Log.e(TAG, "Bad size MSB, high bit not zero");
                 scrollBadBytes(2);
+                continue;
             }
             if((sizeLsb & 0x80) != 0) {
                 //Log.e(TAG, "Bad size LSB, high bit not zero");
                 scrollBadBytes(3);
+                continue;
             }
 
             int messageLen = (sizeMsb << 7) | sizeLsb;
