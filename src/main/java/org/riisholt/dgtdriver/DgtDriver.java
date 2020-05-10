@@ -48,6 +48,7 @@ public class DgtDriver {
     private WriteCallback writeCallback;
     private byte[] buffer = new byte[128];
     private int position = 0;
+    private boolean readyForClockMessage = true;
 
     /**
      * Class constructor.
@@ -156,28 +157,27 @@ public class DgtDriver {
 
     // Clock commands.
     // TODO: Figure out appropriate API for clock display message.
-    public void clockIcons(ClockIconsMessage.Icons left, ClockIconsMessage.Icons right, ClockIconsMessage.GeneralIcons general) {
-        writeClockMessage(new ClockIconsMessage(left, right, general));
+    public boolean clockIcons(ClockIconsMessage.Icons left, ClockIconsMessage.Icons right, ClockIconsMessage.GeneralIcons general) {
+        return writeClockMessage(new ClockIconsMessage(left, right, general));
     }
 
-    public void clockEnd() {
-        writeClockMessage(new ClockEndMessage());
+    public boolean clockEnd() {
+        return writeClockMessage(new ClockEndMessage());
     }
 
-    public void clockButton() {
-        writeClockMessage(new ClockButtonMessage());
+    public boolean clockButton() {
+        return writeClockMessage(new ClockButtonMessage());
     }
 
-    public void clockVersion() {
-        writeClockMessage(new ClockVersionMessage());
+    public boolean clockVersion() {
+        return writeClockMessage(new ClockVersionMessage());
     }
 
-    public void clockSetnrun(Duration leftTime, Duration rightTime) {
-        writeClockMessage(null);
+    public boolean clockSetnrun(Duration leftTime, Duration rightTime) {
+        return writeClockMessage(null);
     }
 
-    public void clockBeep(byte duration) {
-    }
+    public boolean clockBeep(byte duration) { return writeClockMessage(new ClockBeepMessage(duration)); }
 
     /**
      * Sends received bytes to the driver. Any complete messages parsed will
@@ -250,8 +250,20 @@ public class DgtDriver {
                         msg = new BoardDump(data);
                         break;
                     case DGT_BWTIME:
-                        // TODO: Handle clock ACKs.
-                        msg = new BWTime(data);
+                        if((data[0] & 0x0f) == 0x0a || (data[3] & 0x0f) == 0x0a) {
+                            // Clock ACK.
+                            readyForClockMessage = true;
+                        }
+                        /* Apparently the Bluetooth boards can send an empty
+                         * BWTIME message after receiving a clock command,
+                         * which we're supposed to ignore. */
+                        else if(data[0] == 0 && data[1] == 0 && data[2] == 0 &&
+                                data[3] == 0 && data[4] == 0 && data[5] == 0 && data[6] == 0)
+                            // TODO: There's data in the ACK message. Consider breaking that into a separate message.
+                            break;
+                        else {
+                            msg = new BWTime(data);
+                        }
                         break;
                     case DGT_FIELD_UPDATE:
                         msg = new FieldUpdate(data);
@@ -307,10 +319,13 @@ public class DgtDriver {
 
     private void writeByte(byte b) { writeCallback.write(new byte[]{b}); }
 
-    private void writeClockMessage(DgtClockMessage m) {
-        // XXX: We're supposed to wait for a clock ACK message from the board
-        // before we send the next clock message. Need to implement that
-        // somehow.
-        writeCallback.write(m.toBytes());
+    private boolean writeClockMessage(DgtClockMessage m) {
+        if(readyForClockMessage) {
+            readyForClockMessage = false;
+            writeCallback.write(m.toBytes());
+            return true;
+        }
+        else
+            return false;
     }
 }
