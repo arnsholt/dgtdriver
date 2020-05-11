@@ -156,7 +156,8 @@ public class DgtDriver {
     public void scan100()         { writeByte(DGT_SCAN_100); }*/
 
     // Clock commands.
-    // TODO: Figure out appropriate API for clock display message.
+    public boolean clockDisplay(ClockDisplayMessage display) { return writeClockMessage(display); }
+
     public boolean clockIcons(ClockIconsMessage.Icons left, ClockIconsMessage.Icons right, ClockIconsMessage.GeneralIcons general) {
         return writeClockMessage(new ClockIconsMessage(left, right, general));
     }
@@ -253,14 +254,15 @@ public class DgtDriver {
                         if((data[0] & 0x0f) == 0x0a || (data[3] & 0x0f) == 0x0a) {
                             // Clock ACK.
                             readyForClockMessage = true;
+                            msg = new ClockAck(data);
                         }
                         /* Apparently the Bluetooth boards can send an empty
                          * BWTIME message after receiving a clock command,
                          * which we're supposed to ignore. */
                         else if(data[0] == 0 && data[1] == 0 && data[2] == 0 &&
-                                data[3] == 0 && data[4] == 0 && data[5] == 0 && data[6] == 0)
-                            // TODO: There's data in the ACK message. Consider breaking that into a separate message.
+                                data[3] == 0 && data[4] == 0 && data[5] == 0 && data[6] == 0) {
                             break;
+                        }
                         else {
                             msg = new BWTime(data);
                         }
