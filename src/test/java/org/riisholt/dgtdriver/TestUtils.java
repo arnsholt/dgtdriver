@@ -1,11 +1,10 @@
 package org.riisholt.dgtdriver;
 
-import net.razorvine.pickle.Unpickler;
-
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class TestUtils {
@@ -26,16 +25,19 @@ public class TestUtils {
     }
 
     public static List<byte[]> readBytes(String filename) throws java.io.IOException {
-        Unpickler u = new Unpickler();
         ArrayList<byte[]> a = new ArrayList<>();
         InputStream s = TestUtils.class.getClassLoader().getResourceAsStream(filename);
 
         if(s == null)
             throw new RuntimeException(String.format("Failed to locate resource %s", filename));
 
-        while(!streamAtEnd(s)) {
-            a.add((byte[]) u.load(s));
+        Base64.Decoder decoder = Base64.getDecoder();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(s));
+        String line;
+        while((line = reader.readLine()) != null) {
+            a.add(decoder.decode(line));
         }
+
         return a;
     }
 
