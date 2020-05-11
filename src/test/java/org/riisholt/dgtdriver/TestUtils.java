@@ -11,7 +11,7 @@ public class TestUtils {
     public static String readResourceFile(String filename) throws java.io.IOException {
         StringBuilder builder = new StringBuilder();
         String line;
-        InputStream resource = TestUtils.class.getClassLoader().getResourceAsStream(filename);
+        InputStream resource = TestUtils.class.getResourceAsStream(filename);
 
         if(resource == null)
             throw new RuntimeException(String.format("Failed to locate resource %s", filename));
@@ -26,7 +26,7 @@ public class TestUtils {
 
     public static List<byte[]> readBytes(String filename) throws java.io.IOException {
         ArrayList<byte[]> a = new ArrayList<>();
-        InputStream s = TestUtils.class.getClassLoader().getResourceAsStream(filename);
+        InputStream s = TestUtils.class.getResourceAsStream(filename);
 
         if(s == null)
             throw new RuntimeException(String.format("Failed to locate resource %s", filename));

@@ -18,11 +18,11 @@ class MoveParserTest {
     }
 
     void testUci(String prefix) throws java.io.IOException {
-        assertEquals(TestUtils.readResourceFile(prefix + ".uci"), readGame(prefix + ".inbytes").uci());
+        assertEquals(TestUtils.readResourceFile("/" + prefix + ".uci"), readGame("/" + prefix + ".inbytes").uci());
     }
 
     void testPgn(String prefix) throws java.io.IOException {
-        assertEquals(TestUtils.readResourceFile(prefix + ".pgn"), readGame(prefix + ".inbytes").pgn(false));
+        assertEquals(TestUtils.readResourceFile("/" + prefix + ".pgn"), readGame("/" + prefix + ".inbytes").pgn(false));
     }
 
     Game readGame(String filename) throws java.io.IOException {

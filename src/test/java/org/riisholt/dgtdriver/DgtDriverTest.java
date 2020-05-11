@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 class DgtDriverTest {
     @Test
     void testReading() throws java.io.IOException {
-        List<byte[]> msgbytes = TestUtils.readBytes("1.inbytes");
+        List<byte[]> msgbytes = TestUtils.readBytes("/1.inbytes");
         List<DgtMessage> first = processBytes(msgbytes);
         List<DgtMessage> second = processBytesSingly(msgbytes);
         List<DgtMessage> third = processBytesAll(msgbytes);
