@@ -33,7 +33,7 @@ import static org.riisholt.dgtdriver.DgtConstants.*;
  * }
  * </pre>
  *
- * <p></p>For reference, the serial format used for the serial communication
+ * <p>For reference, the serial format used for the serial communication
  * is 9600  baud, 8 data bits, 1 stop bit, no parity, no flow control.</p>
  *
  * @author Arne Skjærholt
@@ -311,7 +311,7 @@ public class DgtDriver {
 
     private void scrollBadBytes(int start) {
         int good;
-        for(good = start; good < position;good++) {
+        for(good = start; good < position; good++) {
             if((buffer[good] & 0x80) != 0)
                 break;
         }
