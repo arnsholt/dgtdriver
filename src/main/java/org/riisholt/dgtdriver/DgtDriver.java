@@ -131,8 +131,8 @@ public class DgtDriver {
     public void trademark() { writeByte(DGT_SEND_TRADEMARK); }
 
     /**
-     * Requests the board to send the moves stored in its EEPROM. The response
-     * to this command is not yet handled by the driver.
+     * Requests the board to send the moves stored in its EEPROM. Results in
+     * an {@link EEMoves} message.
      */
     public void eeMoves() { writeByte(DGT_SEND_EE_MOVES); }
 
@@ -156,29 +156,123 @@ public class DgtDriver {
     public void scan100()         { writeByte(DGT_SCAN_100); }*/
 
     // Clock commands.
-    public boolean clockDisplay(ClockDisplayMessage display) { return writeClockMessage(display); }
+    /**
+     * Send a message to the clock.
+     *
+     * @param message The message to send
+     * @return Whether the message was sent
+     * @see DgtClockMessage
+     */
+    public boolean sendClockMessage(DgtClockMessage message) {
+        if(readyForClockMessage) {
+            readyForClockMessage = false;
+            writeCallback.write(message.toBytes());
+            return true;
+        }
+        else
+            return false;
+    }
 
+    /**
+     * Query if the board is ready for a clock message.
+     *
+     * @return <tt>false</tt> if the driver has sent a clock command and not
+     * yet received an ACK, <tt>true</tt> if not
+     */
+    /* XXX: Clock ACKs are only sent if the board is in a mode that generates
+     * clock messages (UPDATE and UPDATE_NICE, but not IDLE and UPDATE_BRD),
+     * so we probably need to provide some way to override this. I see three
+     * possible solutions:
+     * 1) Allow the user to set readyForClockMessage back to true
+     * 2) Provide a way to force sending the message without checking for ready
+     * 3) Some kind of timeout that resets the ready state
+     *
+     * 1 or 2 is probably the best, I think.
+     */
+    public boolean isReadyForClockMessage() { return readyForClockMessage; }
+
+    /**
+     * Convenience method for sending a  {@link ClockDisplayMessage}.
+     *
+     * @return Whether the message was sent
+     * @see #sendClockMessage(DgtClockMessage)
+     * @see ClockDisplayMessage
+     */
+    public boolean clockDisplay(ClockDisplayMessage.SevenSegment aLocation, ClockDisplayMessage.SevenSegment bLocation,
+                                ClockDisplayMessage.SevenSegment cLocation, ClockDisplayMessage.SevenSegment dLocation,
+                                ClockDisplayMessage.SevenSegment eLocation, ClockDisplayMessage.SevenSegment fLocation,
+                                ClockDisplayMessage.DotsAndOnes dotsAndOnes, boolean beep) {
+        return sendClockMessage(new ClockDisplayMessage(aLocation, bLocation, cLocation,
+                dLocation, eLocation, fLocation, dotsAndOnes, beep));
+    }
+
+    /**
+     * Convenience method for sending a  {@link ClockIconsMessage}.
+     *
+     * @return Whether the message was sent
+     * @see #sendClockMessage(DgtClockMessage)
+     * @see ClockIconsMessage
+     */
     public boolean clockIcons(ClockIconsMessage.Icons left, ClockIconsMessage.Icons right, ClockIconsMessage.GeneralIcons general) {
-        return writeClockMessage(new ClockIconsMessage(left, right, general));
+        return sendClockMessage(new ClockIconsMessage(left, right, general));
     }
 
+    /**
+     * Convenience method for sending a  {@link ClockEndMessage}.
+     *
+     * @return Whether the message was sent
+     * @see #sendClockMessage(DgtClockMessage)
+     * @see ClockEndMessage
+     */
     public boolean clockEnd() {
-        return writeClockMessage(new ClockEndMessage());
+        return sendClockMessage(new ClockEndMessage());
     }
 
+    /**
+     * Convenience method for sending a  {@link ClockButtonMessage}.
+     *
+     * @return Whether the message was sent
+     * @see #sendClockMessage(DgtClockMessage)
+     * @see ClockButtonMessage
+     */
     public boolean clockButton() {
-        return writeClockMessage(new ClockButtonMessage());
+        return sendClockMessage(new ClockButtonMessage());
     }
 
+    /**
+     * Convenience method for sending a  {@link ClockVersionMessage}.
+     *
+     * @return Whether the message was sent
+     * @see #sendClockMessage(DgtClockMessage)
+     * @see ClockVersionMessage
+     */
     public boolean clockVersion() {
-        return writeClockMessage(new ClockVersionMessage());
+        return sendClockMessage(new ClockVersionMessage());
     }
 
-    public boolean clockSetnrun(Duration leftTime, Duration rightTime) {
-        return writeClockMessage(null);
+    /**
+     * Convenience method for sending a  {@link ClockSetNRunMessage}.
+     *
+     * @return Whether the message was sent
+     * @see #sendClockMessage(DgtClockMessage)
+     * @see ClockSetNRunMessage
+     */
+    public boolean clockSetnrun(Duration leftTime, boolean leftCountsUp,
+                                Duration rightTime, boolean rightCountsUp,
+                                boolean pause, boolean toggleOnLever) {
+        return sendClockMessage(new ClockSetNRunMessage(leftTime, leftCountsUp,
+                rightTime, rightCountsUp, pause, toggleOnLever));
     }
 
-    public boolean clockBeep(byte duration) { return writeClockMessage(new ClockBeepMessage(duration)); }
+    /**
+     * Convenience method for sending a  {@link ClockBeepMessage}.
+     *
+     * @param duration How log to enable the beep
+     * @return Whether the message was sent
+     * @see #sendClockMessage(DgtClockMessage)
+     * @see ClockBeepMessage
+     */
+    public boolean clockBeep(byte duration) { return sendClockMessage(new ClockBeepMessage(duration)); }
 
     /**
      * Sends received bytes to the driver. Any complete messages parsed will
@@ -320,14 +414,4 @@ public class DgtDriver {
     }
 
     private void writeByte(byte b) { writeCallback.write(new byte[]{b}); }
-
-    private boolean writeClockMessage(DgtClockMessage m) {
-        if(readyForClockMessage) {
-            readyForClockMessage = false;
-            writeCallback.write(m.toBytes());
-            return true;
-        }
-        else
-            return false;
-    }
 }

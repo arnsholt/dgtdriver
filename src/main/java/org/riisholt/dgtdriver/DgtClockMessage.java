@@ -1,9 +1,28 @@
 package org.riisholt.dgtdriver;
 
+/**
+ * Base class for messages sent from software to the clock.
+ */
 public abstract class DgtClockMessage {
+    /**
+     * Get the data payload bytes of the clock message.
+     *
+     * @return The data bytes to send to the clock. Must be non-null.
+     */
     public abstract byte[] getMessageData();
+
+    /**
+     * Get the identifier of the message sent to the clock.
+     *
+     * @return The message ID
+     */
     public abstract byte getMessageId();
 
+    /**
+     * Convert the message to the correct byte stream to send to the board.
+     *
+     * @return The bytes to send to the board
+     */
     public byte[] toBytes() {
         byte[] data = getMessageData();
 
