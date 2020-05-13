@@ -1,5 +1,8 @@
 package org.riisholt.dgtdriver;
 
+/**
+ * TODO: Document this class.
+ */
 public class ClockDisplayMessage extends DgtClockMessage {
     public final SevenSegment aLocation;
     public final SevenSegment bLocation;

@@ -1,5 +1,8 @@
 package org.riisholt.dgtdriver;
 
+/**
+ * TODO: Document this class.
+ */
 public class ClockIconsMessage extends DgtClockMessage {
     private Icons left, right;
     private GeneralIcons general;

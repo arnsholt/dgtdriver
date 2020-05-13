@@ -1,5 +1,6 @@
 package org.riisholt.dgtdriver;
 
+/** The board's version string. */
 public class VersionMessage implements DgtMessage {
     /**
      * The major version number.

@@ -8,7 +8,10 @@ import org.riisholt.dgtdriver.game.Role;
  * generate a single message (piece B on square) or two messages (square
  * empty, then piece B on square) depending on the how the physical act of
  * replacing the pieces on the board intersects with the scanning of the
- * board.
+ * board. Furthermore, the coordinates are in the <em>board's internal</em>
+ * coordinate system, not necessarily the coordinates of the game; it's
+ * perfectly possible to play a game with white on the board's seventh and
+ * eighth ranks and black on the first and second.
  */
 public class FieldUpdate implements DgtMessage {
     /**

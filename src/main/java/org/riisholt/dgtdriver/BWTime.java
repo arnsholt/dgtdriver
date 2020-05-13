@@ -34,6 +34,7 @@ import java.time.Duration;
  * </ul>
  */
 public class BWTime implements DgtMessage {
+    // TODO: Document the instance variables, but refer to the helper methods for the flags.
     public final Duration left, right;
     public final byte leftFlags, rightFlags, clockStatusFlags;
 
@@ -62,6 +63,7 @@ public class BWTime implements DgtMessage {
         this.clockStatusFlags = clockStatusFlags;
     }
 
+    // TODO: Document all of these methods.
     public boolean leftFinalFlag() { return (leftFlags & 0x01) != 0; }
     public boolean leftTimePerMove() { return (leftFlags & 0x02) != 0; }
     public boolean leftFlag() { return (leftFlags & 0x04) != 0; }

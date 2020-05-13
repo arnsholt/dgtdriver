@@ -2,6 +2,9 @@ package org.riisholt.dgtdriver;
 
 import java.time.Duration;
 
+/**
+ * TODO: Document this class.
+ */
 public class ClockSetNRunMessage extends DgtClockMessage {
     private Duration leftTime, rightTime;
     private boolean leftCountsUp, rightCountsUp, pause, toggleOnLever;
