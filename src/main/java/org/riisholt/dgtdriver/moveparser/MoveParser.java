@@ -180,7 +180,7 @@ public class MoveParser {
      * @return A {@link Game} containing the in-progress game
      */
     public Game currentGame(Result result) {
-        if(lastReachable == null) return new Game(null, null);
+        if(lastReachable == null) return new Game(new ArrayList<>(), null);
 
         ArrayList<PlayedMove> moves = new ArrayList<>();
 
@@ -293,26 +293,26 @@ public class MoveParser {
             positions.put(reachable, reachable);
         }
     }
-}
 
-class ReachablePosition {
-    Board board;
-    ReachablePosition from;
-    Move via;
-    BWTime timeInfo;
+    private static class ReachablePosition {
+        Board board;
+        ReachablePosition from;
+        Move via;
+        BWTime timeInfo;
 
-    ReachablePosition(Board b, ReachablePosition f, Move v) {
-        board = b;
-        from = f;
-        via = v;
-    }
+        ReachablePosition(Board b, ReachablePosition f, Move v) {
+            board = b;
+            from = f;
+            via = v;
+        }
 
-    /* hashCode() can't use board.incrementalHash, since that includes the
-     * turn member in the hash computation, which messes things up since we
-     * don't track turn in the board setup. */
-    public int hashCode() { return ZobristHash.hashPieces(board); }
-    public boolean equals(Object o) {
-        if(!(o instanceof ReachablePosition)) return false;
-        return board.equalSetup(((ReachablePosition) o).board);
+        /* hashCode() can't use board.incrementalHash, since that includes the
+         * turn member in the hash computation, which messes things up since we
+         * don't track turn in the board setup. */
+        public int hashCode() { return ZobristHash.hashPieces(board); }
+        public boolean equals(Object o) {
+            if(!(o instanceof ReachablePosition)) return false;
+            return board.equalSetup(((ReachablePosition) o).board);
+        }
     }
 }

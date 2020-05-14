@@ -1,7 +1,9 @@
 package org.riisholt.dgtdriver;
 
 /**
- * TODO: Document this class.
+ * Response from the clock to a clock command.
+ *
+ * @see DgtClockMessage
  */
 public class ClockAck implements DgtMessage {
     public final byte ack0;

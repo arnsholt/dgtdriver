@@ -34,9 +34,47 @@ import java.time.Duration;
  * </ul>
  */
 public class BWTime implements DgtMessage {
-    // TODO: Document the instance variables, but refer to the helper methods for the flags.
-    public final Duration left, right;
-    public final byte leftFlags, rightFlags, clockStatusFlags;
+    /** Time left on the left player's clock. */
+    public final Duration left;
+    /** Time left on the right player's clock. */
+    public final Duration right;
+
+    /**
+     * Status byte for the left clock. Information <em>can</em> be extracted
+     * from this byte, but more convenient is probably the helper methods
+     * defined in this class.
+     *
+     * @see #leftFinalFlag()
+     * @see #leftFlag()
+     * @see #leftTimePerMove()
+     */
+    public final byte leftFlags;
+
+    /**
+     * Status byte for the right clock. Information <em>can</em> be extracted
+     * from this byte, but more convenient is probably the helper methods
+     * defined in this class.
+     *
+     * @see #rightFinalFlag()
+     * @see #rightFlag()
+     * @see #rightTimePerMove()
+     */
+    public final byte rightFlags;
+
+    /**
+     * Status byte for general flags. Information <em>can</em> be extracted
+     * from this byte, but more convenient is probably the helper methods
+     * defined in this class.
+     *
+     * @see #clockConnected()
+     * @see #clockRunning()
+     * @see #leftHigh()
+     * @see #rightHigh()
+     * @see #batteryLow()
+     * @see #leftToMove()
+     * @see #rightToMove()
+     */
+    public final byte clockStatusFlags;
 
     public BWTime(byte[] data) throws DgtProtocolException {
         if(data.length != 7)
@@ -63,26 +101,63 @@ public class BWTime implements DgtMessage {
         this.clockStatusFlags = clockStatusFlags;
     }
 
-    // TODO: Document all of these methods.
+    /** Has the left player's final flag fallen? */
     public boolean leftFinalFlag() { return (leftFlags & 0x01) != 0; }
+    /** Is the left player's time per move indicator on? */
     public boolean leftTimePerMove() { return (leftFlags & 0x02) != 0; }
+    /** Has the left player's flag fallen? */
     public boolean leftFlag() { return (leftFlags & 0x04) != 0; }
 
+    /** Has the right player's final flag fallen? */
     public boolean rightFinalFlag() { return (rightFlags & 0x01) != 0; }
+    /** Is the right player's time per move indicator on? */
     public boolean rightTimePerMove() { return (rightFlags & 0x02) != 0; }
+    /** Has the right player's flag fallen? */
     public boolean rightFlag() { return (rightFlags & 0x04) != 0; }
 
+    /** Is the clock running? */
     public boolean clockRunning()   { return (clockStatusFlags & 0x01) != 0; }
+    /** Is the left side of the clock tumbler high? */
     public boolean leftHigh()       { return (clockStatusFlags & 0x02) == 0; }
+    /** Is the right side of the clock tumbler high? */
     public boolean rightHigh()      { return (clockStatusFlags & 0x02) != 0; }
+    /** Is the clock indicating low battery? */
     public boolean batteryLow()     { return (clockStatusFlags & 0x04) != 0; }
+    /** Is it the left player's turn to move? */
     public boolean leftToMove()     { return (clockStatusFlags & 0x08) != 0; }
+    /** Is it the right player's turn to move? */
     public boolean rightToMove()    { return (clockStatusFlags & 0x10) != 0; }
+    /** Is a clock connected to the board? */
     public boolean clockConnected() { return (clockStatusFlags & 0x20) != 0; }
 
+    /**
+     * The time remaining on the left clock, formatted as "HH:MM:ss". The
+     * minute and second fields are zero padded to always be two characters
+     * wide.
+     *
+     * @return The left player's time
+     */
     public String leftTimeString() { return timeString(left); }
+
+    /**
+     * The time remaining on the right clock, formatted as "HH:MM:ss". The
+     * minute and second fields are zero padded to always be two characters
+     * wide.
+     *
+     * @return The right player's time
+     */
     public String rightTimeString() { return timeString(right); }
 
+    /**
+     * Rotate the clock info. This swaps all the position-dependent
+     * information around, so that it's as if the left player is on the right
+     * and vice versa. This is a helper intended for the case where the game
+     * is played with white seated at the "black" side of the board, so that
+     * most of the code can assume that white is always on the left and the
+     * board's A1 is the game's A1.
+     *
+     * @return A rotated copy
+     */
     public BWTime rotate() {
         /* The flags for left/right high, left to move, and right to move
          * depend on the orientation of the board (assuming the clock is

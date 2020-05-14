@@ -7,7 +7,7 @@ import org.riisholt.dgtdriver.game.Board;
  */
 public class BoardDump implements DgtMessage {
     /**
-     * The new board state. Only the piece configuration is valid, other
+     * The board state. Only the piece configuration is valid, other
      * information (turn, ep square, castling rights) are in an indeterminate
      * state.
      */
