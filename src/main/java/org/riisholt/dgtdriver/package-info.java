@@ -14,7 +14,7 @@
  * getter, and modifying an object requires you to construct a modified copy;
  * directly modifying domain objects is not supported.</p>
  *
- * <h2>Some details about DBT boards</h2>
+ * <h3>Some details about DBT boards</h3>
  * <p>For details on the electronic guts of the DGT board, I refer you to <a
  * href="https://www.chessprogramming.org/DGT_Board">the Chess Programming
  * Wiki</a>, but for working with the board some idea of how the hardware
