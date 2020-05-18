@@ -18,7 +18,4 @@ While the most important parts of the protocol have been implemented, some
 parts are still outstanding:
 
 * Draughts boards are not supported.
-* The DGT_EE_MOVES response (dump of moves stored in EEPROM) is currently
-  silently ignored and the exact API for handling this is to be determined.
-* Sending commands to the clock is not yet implemented.
 * Bus mode is not supported.
