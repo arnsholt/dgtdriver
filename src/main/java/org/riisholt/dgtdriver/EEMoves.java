@@ -208,7 +208,7 @@ public class EEMoves implements DgtMessage {
 
     /**
      * Instances of this class are used to represent events corresponding to
-     * the <tt>EE_*</tt> byte constants in {@link EEMoves}.
+     * the {@code EE_*} byte constants in {@link EEMoves}.
      */
     public static class SimpleEvent extends EEEvent {
         public final byte type;
@@ -227,7 +227,7 @@ public class EEMoves implements DgtMessage {
         public final int square;
 
         /**
-         * The kind of piece placed on the field, or <tt>null</tt> if a piece
+         * The kind of piece placed on the field, or {@code null} if a piece
          * was removed.
          */
         public final Role role;
@@ -247,7 +247,7 @@ public class EEMoves implements DgtMessage {
         /** The new time left on the clock. */
         public final Duration time;
 
-        /** <tt>true</tt> if the update applies to the left-hand side. */
+        /** {@code true} if the update applies to the left-hand side. */
         public final boolean isLeft;
 
         ClockEvent(boolean isLeft, byte hours, byte minutes, byte seconds) {
@@ -266,10 +266,10 @@ public class EEMoves implements DgtMessage {
      * {@link #clockUpdate(Duration, boolean)} are called when visiting
      * {@link FieldEvent} and {@link ClockEvent} events, respectively, while
      * the rest correspond to {@link SimpleEvent SimpleEvents} containing the
-     * relevant <tt>EE_*</tt> event code; note however that
+     * relevant {@code EE_*} event code; note however that
      * {@link EEMoves#EE_BEGINPOS} and {@link EEMoves#EE_BEGINPOS_ROT} have
      * been merged to a single method {@link #initialPosition(boolean)}, with
-     * the parameter set to <tt>true</tt> in the rotated case.</p>
+     * the parameter set to {@code true} in the rotated case.</p>
      */
     public static class Visitor {
         public void fieldUpdate(int square, Role role) {}

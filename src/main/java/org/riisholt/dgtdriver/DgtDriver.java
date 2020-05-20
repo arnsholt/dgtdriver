@@ -176,8 +176,8 @@ public class DgtDriver {
     /**
      * Query if the board is ready for a clock message.
      *
-     * @return <tt>false</tt> if the driver has sent a clock command and not
-     * yet received an ACK, <tt>true</tt> if not
+     * @return {@code false} if the driver has sent a clock command and not
+     * yet received an ACK, {@code true} if not
      */
     /* XXX: Clock ACKs are only sent if the board is in a mode that generates
      * clock messages (UPDATE and UPDATE_NICE, but not IDLE and UPDATE_BRD),
@@ -194,6 +194,14 @@ public class DgtDriver {
     /**
      * Convenience method for sending a  {@link ClockDisplayMessage}.
      *
+     * @param aLocation seven-segment data for position A
+     * @param bLocation seven-segment data for position B
+     * @param cLocation seven-segment data for position C
+     * @param dLocation seven-segment data for position D
+     * @param eLocation seven-segment data for position E
+     * @param fLocation seven-segment data for position F
+     * @param dotsAndOnes dots and ones data
+     * @param beep turn on beep?
      * @return Whether the message was sent
      * @see #sendClockMessage(DgtClockMessage)
      * @see ClockDisplayMessage
@@ -209,6 +217,9 @@ public class DgtDriver {
     /**
      * Convenience method for sending a  {@link ClockIconsMessage}.
      *
+     * @param left left icons
+     * @param right right icons
+     * @param general general icons
      * @return Whether the message was sent
      * @see #sendClockMessage(DgtClockMessage)
      * @see ClockIconsMessage
@@ -253,6 +264,12 @@ public class DgtDriver {
     /**
      * Convenience method for sending a  {@link ClockSetNRunMessage}.
      *
+     * @param leftTime time on the left clock
+     * @param leftCountsUp should the left clock count up?
+     * @param rightTime time on the right clock
+     * @param rightCountsUp should the right clock count up?
+     * @param pause pause the clock?
+     * @param toggleOnLever toggle player on lever change?
      * @return Whether the message was sent
      * @see #sendClockMessage(DgtClockMessage)
      * @see ClockSetNRunMessage

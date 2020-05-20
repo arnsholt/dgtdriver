@@ -101,33 +101,95 @@ public class BWTime implements DgtMessage {
         this.clockStatusFlags = clockStatusFlags;
     }
 
-    /** Has the left player's final flag fallen? */
+    /**
+     * Has the left player's final flag fallen?
+     *
+     * @return {@code true} if the final flag has fallen
+     */
     public boolean leftFinalFlag() { return (leftFlags & 0x01) != 0; }
-    /** Is the left player's time per move indicator on? */
+
+    /**
+     * Is the left player's time per move indicator on?
+     *
+     * @return {@code true} if the time per move indicator is on
+     */
     public boolean leftTimePerMove() { return (leftFlags & 0x02) != 0; }
-    /** Has the left player's flag fallen? */
+
+    /**
+     * Has the left player's flag fallen?
+     *
+     * @return {@code true} if the flag has fallen
+     */
     public boolean leftFlag() { return (leftFlags & 0x04) != 0; }
 
-    /** Has the right player's final flag fallen? */
+    /**
+     * Has the right player's final flag fallen?
+     *
+     * @return {@code true} if the final flag has fallen
+     */
     public boolean rightFinalFlag() { return (rightFlags & 0x01) != 0; }
-    /** Is the right player's time per move indicator on? */
+
+    /**
+     * Is the right player's time per move indicator on?
+     *
+     * @return {@code true} if the time per move indicator is on
+     */
     public boolean rightTimePerMove() { return (rightFlags & 0x02) != 0; }
-    /** Has the right player's flag fallen? */
+
+    /**
+     * Has the right player's flag fallen?
+     *
+     * @return {@code true} if the flag has fallen
+     */
     public boolean rightFlag() { return (rightFlags & 0x04) != 0; }
 
-    /** Is the clock running? */
+    /**
+     * Is the clock running?
+     *
+     * @return {@code true} if the clock is running
+     */
     public boolean clockRunning()   { return (clockStatusFlags & 0x01) != 0; }
-    /** Is the left side of the clock tumbler high? */
+
+    /**
+     * Is the left side of the clock tumbler high?
+     *
+     * @return {@code true} if the left tumbler is high
+     */
     public boolean leftHigh()       { return (clockStatusFlags & 0x02) == 0; }
-    /** Is the right side of the clock tumbler high? */
+
+    /**
+     * Is the right side of the clock tumbler high?
+     *
+     * @return {@code true} if the right tumbler is high
+     */
     public boolean rightHigh()      { return (clockStatusFlags & 0x02) != 0; }
-    /** Is the clock indicating low battery? */
+
+    /**
+     * Is the clock indicating low battery?
+     *
+     * @return {@code true} if the battery is low
+     */
     public boolean batteryLow()     { return (clockStatusFlags & 0x04) != 0; }
-    /** Is it the left player's turn to move? */
+
+    /**
+     * Is it the left player's turn to move?
+     *
+     * @return {@code true} if the left player is to move
+     */
     public boolean leftToMove()     { return (clockStatusFlags & 0x08) != 0; }
-    /** Is it the right player's turn to move? */
+
+    /** /**
+     * Is it the right player's turn to move?
+     *
+     * @return {@code true} if the right player is to move
+     */
     public boolean rightToMove()    { return (clockStatusFlags & 0x10) != 0; }
-    /** Is a clock connected to the board? */
+
+    /**
+     * Is a clock connected to the board?
+     *
+     * @return {@code true} if a clock is connected
+     */
     public boolean clockConnected() { return (clockStatusFlags & 0x20) != 0; }
 
     /**
