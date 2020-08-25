@@ -106,9 +106,6 @@ public class Game {
     }
 
     private void appendResult(StringBuilder sb) {
-        if(result != null) {
-            sb.append(' ')
-              .append(result.resultString());
-        }
+        sb.append(' ').append(result != null? result.resultString() : "*");
     }
 }
