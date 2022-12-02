@@ -42,14 +42,14 @@ import java.util.*;
 public class MoveParser {
     public interface GameCallback { void gameComplete(Game game); }
 
-    private static Board initialPosition = new Board();
-    private static Board rotatedInitialPosition;
+    private static final Board initialPosition = new Board();
+    private static final Board rotatedInitialPosition;
     static {
         rotatedInitialPosition = new Board();
         rotatedInitialPosition.rotate180();
     }
 
-    private GameCallback gameCallback;
+    private final GameCallback gameCallback;
 
     private Board boardState;
     private HashMap<ReachablePosition, ReachablePosition> positions;
