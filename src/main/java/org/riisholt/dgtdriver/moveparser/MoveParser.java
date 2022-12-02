@@ -121,26 +121,32 @@ public class MoveParser {
 
     private void handleUpdate(Board newState) {
         boardState = newState;
-        if(boardState == null) return;
-
         if(!seenInitialPosition) {
-            if(newState.equalSetup(initialPosition)) {
-                seenInitialPosition = true;
-                lastReachable = new ReachablePosition(initialPosition, null, null);
-                positions.put(lastReachable, lastReachable);
-                addReachablePositions(lastReachable, positions);
-            }
-            else if(newState.equalSetup(rotatedInitialPosition)) {
-                seenInitialPosition = true;
-                lastReachable = new ReachablePosition(initialPosition, null, null);
-                positions.put(lastReachable, lastReachable);
-                addReachablePositions(lastReachable, positions);
-                boardState.rotate180();
-                rotate = true;
-            }
-            return;
+            preInitialPosition();
         }
+        else {
+            handleNormalUpdate();
+        }
+    }
 
+    private void preInitialPosition() {
+        if(boardState.equalSetup(initialPosition)) {
+            seenInitialPosition = true;
+            lastReachable = new ReachablePosition(initialPosition, null, null);
+            positions.put(lastReachable, lastReachable);
+            addReachablePositions(lastReachable, positions);
+        }
+        else if(boardState.equalSetup(rotatedInitialPosition)) {
+            seenInitialPosition = true;
+            lastReachable = new ReachablePosition(initialPosition, null, null);
+            positions.put(lastReachable, lastReachable);
+            addReachablePositions(lastReachable, positions);
+            boardState.rotate180();
+            rotate = true;
+        }
+    }
+
+    private void handleNormalUpdate() {
         ReachablePosition p = new ReachablePosition(boardState, null, null);
         ReachablePosition reachable = positions.get(p);
         if(reachable != null) {
