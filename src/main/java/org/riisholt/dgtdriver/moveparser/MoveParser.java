@@ -87,15 +87,14 @@ public class MoveParser {
      *                                  before a BoardUpdate message.
      */
     public void gotMessage(DgtMessage msg) {
-        Board newState;
         if(msg instanceof BoardDump) {
-            newState = ((BoardDump) msg).board;
+            handleUpdate(((BoardDump) msg).board);
         }
         else if(msg instanceof FieldUpdate) {
             FieldUpdate update = (FieldUpdate) msg;
             if(boardState == null)
                 throw new IllegalArgumentException("Got FieldUpdate message before initial BoardDump.");
-            newState = new Board(boardState);
+            Board newState = new Board(boardState);
             int square = rotate?
                     // Rotation trick from https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Rotationby180degrees
                     update.square ^ 63:
@@ -109,6 +108,7 @@ public class MoveParser {
             else {
                 newState.put(square, update.color, update.role);
             }
+            handleUpdate(newState);
         }
         else if(msg instanceof  BWTime) {
             if(lastReachable != null) {
@@ -116,13 +116,10 @@ public class MoveParser {
                     msg = ((BWTime) msg).rotate();
                 lastReachable.timeInfo = (BWTime) msg;
             }
-            return;
         }
-        else {
-            // Ignore messages we don't use for parsing.
-            return;
-        }
+    }
 
+    private void handleUpdate(Board newState) {
         boardState = newState;
         if(boardState == null) return;
 
