@@ -198,6 +198,15 @@ public class MoveParser {
         return new Game(moves, result);
     }
 
+    /**
+     * Get the current state of the board.
+     *
+     * @return A copy of the current board state as seen by the parser
+     */
+    public Board boardState() {
+        return new Board(boardState);
+    }
+
     private static String moveToSan(ReachablePosition r) {
         StringBuilder sb = new StringBuilder();
         // Castling is easy; we just have to check whether it's long or short.
