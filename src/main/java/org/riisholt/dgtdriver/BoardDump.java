@@ -13,6 +13,7 @@ public class BoardDump implements DgtMessage {
      */
     public final Board board;
 
+    /** Construct an object from a board data payload. */
     public BoardDump(byte[] data) throws DgtProtocolException {
         if(data.length != 64)
             throw new DgtProtocolException("BoardDump expects exactly 64 bytes of data");

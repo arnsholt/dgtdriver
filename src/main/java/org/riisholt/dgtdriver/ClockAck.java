@@ -11,6 +11,7 @@ public class ClockAck implements DgtMessage {
     public final byte ack2;
     public final byte ack3;
 
+    /** Construct an object from a board data payload. */
     public ClockAck(byte[] data) throws DgtProtocolException {
         if(data.length != 7)
             throw new DgtProtocolException("ClockAck expects exactly 7 bytes of data (got " + data.length + ")");

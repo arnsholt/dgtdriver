@@ -17,7 +17,7 @@ import org.riisholt.dgtdriver.game.Role;
  * data replaces the oldest data already written.
  *
  * @see <a href="https://en.wikipedia.org/wiki/EEPROM">EEPROM</a>
- * @see <a  href="https://en.wikipedia.org/wiki/Circular_buffer">Ring buffer</a>
+ * @see <a href="https://en.wikipedia.org/wiki/Circular_buffer">Ring buffer</a>
  */
 public class EEMoves implements DgtMessage {
     /**
@@ -85,7 +85,9 @@ public class EEMoves implements DgtMessage {
      */
     public static final byte EE_FUTURE_2        = 0x7e;
 
+    /** No operation value, written on board power-up. */
     public static final byte EE_NOP             = 0x7f;
+    /** Same function as {@link #EE_NOP}? Not documented by DGT. */
     public static final byte EE_NOP2            = 0x00;
     // 0x40 to 0x5f: two-byte field update message
     // 0x60-69 and 0x70-0x79: three byte clock message
@@ -191,11 +193,11 @@ public class EEMoves implements DgtMessage {
             }
             else if (e instanceof ClockEvent) {
                 ClockEvent clockEvent = (ClockEvent) e;
-                visitor.clockUpdate(clockEvent.time, clockEvent.isLeft);
+                visitor.clockUpdate(clockEvent);
             }
             else if(e instanceof FieldEvent) {
                 FieldEvent fieldEvent = (FieldEvent) e;
-                visitor.fieldUpdate(fieldEvent.square, fieldEvent.role);
+                visitor.fieldUpdate(fieldEvent);
             }
             else {
                 throw new RuntimeException(String.format("Unknown event class %s", e.getClass().getName()));
@@ -211,8 +213,10 @@ public class EEMoves implements DgtMessage {
      * the {@code EE_*} byte constants in {@link EEMoves}.
      */
     public static class SimpleEvent extends EEEvent {
+        /** Event type. */
         public final byte type;
 
+        /** Construct an object. */
         SimpleEvent(byte type) {
             this.type = type;
         }
@@ -232,6 +236,7 @@ public class EEMoves implements DgtMessage {
          */
         public final Role role;
 
+        /** Construct an object from its byte encoding. */
         FieldEvent(byte piece, byte field) throws DgtProtocolException {
             square = DgtConstants.dgtCodeToSquare(field);
             role = DgtConstants.dgtCodeToRole(piece);
@@ -250,6 +255,7 @@ public class EEMoves implements DgtMessage {
         /** {@code true} if the update applies to the left-hand side. */
         public final boolean isLeft;
 
+        /** Construct an object from its byte encoding. */
         ClockEvent(boolean isLeft, byte hours, byte minutes, byte seconds) {
             this.isLeft = isLeft;
             this.time = Duration.ZERO.plusHours(hours)
@@ -262,27 +268,56 @@ public class EEMoves implements DgtMessage {
      * <p>Visitor class for use with {@link EEMoves#visitEvents(Visitor)} with
      * empty implementations for all the methods.</p>
      *
-     * <p>The methods {@link #fieldUpdate(int, Role)} and
-     * {@link #clockUpdate(Duration, boolean)} are called when visiting
-     * {@link FieldEvent} and {@link ClockEvent} events, respectively, while
-     * the rest correspond to {@link SimpleEvent SimpleEvents} containing the
-     * relevant {@code EE_*} event code; note however that
-     * {@link EEMoves#EE_BEGINPOS} and {@link EEMoves#EE_BEGINPOS_ROT} have
-     * been merged to a single method {@link #initialPosition(boolean)}, with
-     * the parameter set to {@code true} in the rotated case.</p>
+     * <p>The methods {@link #fieldUpdate(FieldEvent)} and {@link
+     * #clockUpdate(ClockEvent)} are called when visiting {@link FieldEvent}
+     * and {@link ClockEvent} events, respectively, while the rest correspond
+     * to {@link SimpleEvent SimpleEvents} containing the relevant {@code
+     * EE_*} event code; note however that {@link EEMoves#EE_BEGINPOS} and
+     * {@link EEMoves#EE_BEGINPOS_ROT} have been merged to a single method
+     * {@link #initialPosition(boolean)}, with the parameter set to {@code
+     * true} in the rotated case.</p>
      */
     public static class Visitor {
-        public void fieldUpdate(int square, Role role) {}
-        public void clockUpdate(Duration timeLeft, boolean isLeft) {}
+        /** Called when a field's status changes.
+         *
+         * @param event The event object containing the field update
+         */
+        public void fieldUpdate(FieldEvent event) {}
+        /** Called when the clock changes.
+         *
+         * @param event The event object containing the clock update
+         */
+        public void clockUpdate(ClockEvent event) {}
+        /** Called when the board is turned on. */
         public void powerup() {}
+        /** Called at the end of data. */
         public void eof() {}
+        /** Called when the four rows state is observed. This happens when 16
+         * chess pieces are placed on the board on the first, second, seventh
+         * and eighth ranks, and <em>not</em> in the standard initial
+         * position.
+         *
+         * @see #initialPosition(boolean)
+         */
         public void fourRows() {}
+        /** Called when an empty board is observed. */
         public void emptyBoard() {}
+        /** Called when the saved data is downloaded from the board. */
         public void downloaded() {}
+        /** Called when the initial position is observed.
+         *
+         * @param rotated True if the position is rotated, with white on the
+         *                seventh and eighth ranks and black on the first and
+         *                second.
+         */
         public void initialPosition(boolean rotated) {}
+        /** Called when a start tag is seen in the data. */
         public void startTag() {}
+        /** Called when the watchdog action is performed. */
         public void watchdogAction() {}
+        /** Called on the {@link EEMoves#EE_FUTURE_1} event. */
         public void future1() {}
+        /** Called on the {@link EEMoves#EE_FUTURE_2} event. */
         public void future2 () {}
     }
 }

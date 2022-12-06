@@ -76,6 +76,7 @@ public class BWTime implements DgtMessage {
      */
     public final byte clockStatusFlags;
 
+    /** Construct an object from a board data payload. */
     public BWTime(byte[] data) throws DgtProtocolException {
         if(data.length != 7)
             throw new DgtProtocolException("BWTime expects exactly 7 bytes of data (got " + data.length + ")");
